@@ -1,0 +1,13 @@
+D:\programowanie\Adifo\SimpleDatabaseEngine\SimpleDatabaseEngine\bin\Debug\netcoreapp3.1\SimpleDatabaseEngine.exe
+D:\programowanie\Adifo\SimpleDatabaseEngine\SimpleDatabaseEngine\obj\Debug\netcoreapp3.1\SimpleDatabaseEngine.csprojAssemblyReference.cache
+D:\programowanie\Adifo\SimpleDatabaseEngine\SimpleDatabaseEngine\obj\Debug\netcoreapp3.1\SimpleDatabaseEngine.AssemblyInfoInputs.cache
+D:\programowanie\Adifo\SimpleDatabaseEngine\SimpleDatabaseEngine\obj\Debug\netcoreapp3.1\SimpleDatabaseEngine.AssemblyInfo.cs
+D:\programowanie\Adifo\SimpleDatabaseEngine\SimpleDatabaseEngine\bin\Debug\netcoreapp3.1\SimpleDatabaseEngine.deps.json
+D:\programowanie\Adifo\SimpleDatabaseEngine\SimpleDatabaseEngine\bin\Debug\netcoreapp3.1\SimpleDatabaseEngine.runtimeconfig.json
+D:\programowanie\Adifo\SimpleDatabaseEngine\SimpleDatabaseEngine\bin\Debug\netcoreapp3.1\SimpleDatabaseEngine.runtimeconfig.dev.json
+D:\programowanie\Adifo\SimpleDatabaseEngine\SimpleDatabaseEngine\bin\Debug\netcoreapp3.1\SimpleDatabaseEngine.dll
+D:\programowanie\Adifo\SimpleDatabaseEngine\SimpleDatabaseEngine\bin\Debug\netcoreapp3.1\SimpleDatabaseEngine.pdb
+D:\programowanie\Adifo\SimpleDatabaseEngine\SimpleDatabaseEngine\obj\Debug\netcoreapp3.1\SimpleDatabaseEngine.csproj.CoreCompileInputs.cache
+D:\programowanie\Adifo\SimpleDatabaseEngine\SimpleDatabaseEngine\obj\Debug\netcoreapp3.1\SimpleDatabaseEngine.dll
+D:\programowanie\Adifo\SimpleDatabaseEngine\SimpleDatabaseEngine\obj\Debug\netcoreapp3.1\SimpleDatabaseEngine.pdb
+D:\programowanie\Adifo\SimpleDatabaseEngine\SimpleDatabaseEngine\obj\Debug\netcoreapp3.1\SimpleDatabaseEngine.genruntimeconfig.cache
