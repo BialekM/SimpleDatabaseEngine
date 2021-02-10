@@ -28,6 +28,8 @@ x86/
 bld/
 [Bb]in/
 [Oo]bj/
+SimpleDatabaseEngineTests/obj/
+SimpleDatabaseEngine/obj/
 [Ll]og/
 [Ll]ogs/
 
