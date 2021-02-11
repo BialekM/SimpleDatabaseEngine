@@ -1,4 +1,7 @@
-﻿namespace SimpleDatabaseEngine
+﻿using System;
+using System.Collections.Generic;
+
+namespace SimpleDatabaseEngine
 {
     public class BPlusTree
     {
@@ -7,7 +10,7 @@
         public BPlusTree(int treeOrder, int key)
         {
             _treeOrder = treeOrder;
-            Root.TryAddKeyToNode(key);
+            Root.AddKeyToLeaf(key);
         }
 
         public void InsertRoot(int key)
@@ -31,29 +34,90 @@
 
         public void SplitNode(Node node)
         {
+            var isNewRoot = false;
+            Node parrent = null;
             if (node.Parent == null) //root case
             {
-                node.Parent = new Node();
-                Root = node.Parent;
+                parrent = new Node();
+                Root = parrent;
+                isNewRoot = true;
+                node.Parent = parrent;
             }
-            var medianaPosition = node.Keys.Count / 2;
-            node.Parent.TryAddKeyToNode(node.Keys[medianaPosition]);
-            node.Parent.Children.Add(node.CreateChild(medianaPosition, node.Parent, true));
-            node.Parent.Children.Add(node.CreateChild(medianaPosition, node.Parent, false));
-            node.Parent.isLeaf = false;
-            if (node.Parent.isFull())
-                SplitNode(node.Parent);
+            else
+            {
+                parrent = node.Parent;
+            }            
+
+            var median = GetMedian();
+            var newParentKey = node.Keys[median];
+            parrent.AddKeyToLeaf(newParentKey);
+            var keysForBigger = new List<int>();
+            if (node.isLeaf)
+            {
+                keysForBigger = node.Keys.GetRange(median, node.Keys.Count - median);
+            }
+            else
+            {
+                keysForBigger = node.Keys.GetRange(median + 1, node.Keys.Count - median - 1);
+            }
+            RemoveKeys(median, node);
+            List<Node> listofChildrenForBigger = new List<Node>();
+            if (node.Children.Count > 0)
+            {
+                listofChildrenForBigger = node.Children.GetRange(median + 1, node.Children.Count - median -1);
+                RemoveChildren(median + 1, node);
+            }
+
+            var biggerNode = parrent.CreateChild(listofChildrenForBigger, keysForBigger, parrent, node.isLeaf);
+
+
+
+            if (parrent == Root && isNewRoot)
+            {
+                parrent.Children.Add(node);
+            }
+            parrent.Children.Add(biggerNode);
+
+            parrent.isLeaf = false;
+
+            if (parrent.isFull())
+                SplitNode(parrent);
+        }
+
+        private void RemoveKeys(int index, Node node)
+        {
+            var newKeys = new List<int>();
+            for(int i = 0; i < index; i++)
+            {
+                newKeys.Add(node.Keys[i]);
+            }
+            node.Keys = newKeys;
+        }
+
+        private void RemoveChildren(int index, Node node)
+        {
+            var newChildren = new List<Node>();
+            for(int i = 0; i < index; i++)
+            {
+                newChildren.Add(node.Children[i]);
+            }
+            node.Children = newChildren;
+        }
+
+        private int GetMedian()
+        {
+            return (int) Math.Ceiling((float) (_treeOrder + 1) / 2) -1;
         }
 
         public void AddKeyToTree(int key)
         {
-            var leaf = GoToLeaf(key, Root);
-            leaf.TryAddKeyToNode(key);
+            var leaf = FindLeafNode(key, Root);
+            leaf.AddKeyToLeaf(key);
             if (leaf.isFull())
                 SplitNode(leaf);              
         }
 
-        public Node GoToLeaf(int key, Node node)
+        public Node FindLeafNode(int key, Node node)
         {
             if (node.isLeaf)
             {
@@ -65,12 +129,12 @@
                 {
                     if ((key <= node.Keys[i] && !node.isLeaf) || i == node.Children.Count)
                     {
-                        return GoToLeaf(key, node.Children[i]);
+                        return FindLeafNode(key, node.Children[i]);
                     }
                 }
                 if (key > node.Keys[node.Keys.Count - 1])
                 {
-                    return GoToLeaf(key, node.Children[node.Children.Count - 1]);
+                    return FindLeafNode(key, node.Children[node.Children.Count - 1]);
                 }
             }
             return node;

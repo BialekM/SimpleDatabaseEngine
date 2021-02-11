@@ -17,12 +17,12 @@ namespace SimpleDatabaseEngineTests
         public void AddKeysToNode()
         {
             Node node = new Node();
-            node.TryAddKeyToNode(5);
-            node.TryAddKeyToNode(3);
-            node.TryAddKeyToNode(10);
-            node.TryAddKeyToNode(11);
-            node.TryAddKeyToNode(2);
-            node.TryAddKeyToNode(21);
+            node.AddKeyToLeaf(5);
+            node.AddKeyToLeaf(3);
+            node.AddKeyToLeaf(10);
+            node.AddKeyToLeaf(11);
+            node.AddKeyToLeaf(2);
+            node.AddKeyToLeaf(21);
             Assert.AreEqual(2, node.Keys[0]);
             Assert.AreEqual(3, node.Keys[1]);
             Assert.AreEqual(5, node.Keys[2]);
@@ -39,8 +39,10 @@ namespace SimpleDatabaseEngineTests
             tree.AddKeyToTree(25);
             tree.AddKeyToTree(35);
             tree.AddKeyToTree(45);
-            //tree.Root.TryAddKeyToNode(15);
-            //tree.Root.TryAddKeyToNode(25);
+            tree.AddKeyToTree(50);
+            tree.AddKeyToTree(65);
+            tree.AddKeyToTree(10);
+            tree.AddKeyToTree(2);
             //tree.SplitNode(tree.Root);
             //var node = tree.GoToLeaf(7, tree.Root);
             //var node1 = tree.GoToLeaf(16, tree.Root);

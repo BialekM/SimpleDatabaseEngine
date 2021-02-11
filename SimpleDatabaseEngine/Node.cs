@@ -28,26 +28,19 @@ namespace SimpleDatabaseEngine
             isLeaf = true;
         }
 
-        public Node CreateChild(int parrentPosition, Node parent, bool nodeWithLessValue)
+        public Node CreateChild(List<Node> children, List<int> keys, Node parent, bool isLeaf)
         {
             Node node = new Node
             {
                 Parent = parent,
-                isLeaf = true
+                isLeaf = isLeaf,
+                Children = children,
+                Keys = keys
             };
-            if (nodeWithLessValue)
+
+            foreach (var child in node.Children)
             {
-                for (int i = 0; i <= parrentPosition; i++)
-                {
-                    node.TryAddKeyToNode(Keys[i]);
-                }
-            }
-            else
-            {
-                for (int i = parrentPosition + 1; i < Keys.Count; i++)
-                {
-                    node.TryAddKeyToNode(Keys[i]);
-                }
+                child.Parent = node;
             }
 
             return node;
@@ -55,45 +48,26 @@ namespace SimpleDatabaseEngine
 
         public bool isFull()
         {
-            return Keys.Count >= 3;
+            return (Keys.Count >= 3);
         }
 
         //Add key in correct order + null check
-        public bool TryAddKeyToNode(int key)
+        public void AddKeyToLeaf(int key  )
         {
-            var result = false;
-            if (Keys.Count == 0)
+            if (Keys.Count > 0 && key < Keys[0])
             {
-                Keys.Add(key);
-                return true;
+                Keys.Insert(0, key);
+                return;
             }
-            else
+            for (int i = 0; i < Keys.Count -1; ++i)
             {
-                for (int i = 0; i < Keys.Count; i++)
+                if( key> Keys[i] && key < Keys[i + 1])
                 {
-                    if (Keys[i] >= key)
-                    {
-                        if (Keys[i] == key)
-                        {
-                            result = false;
-                            break;
-                        }
-                        else
-                        {
-                            Keys.Insert(i, key);
-                            result = true;
-                            break;
-                        }
-                    }
-                    else if (i == Keys.Count - 1)
-                    {
-                        Keys.Add(key);
-                        result = true;
-                        break;
-                    }
+                    Keys.Insert(i + 1, key);
+                    return;
                 }
-                return result;
             }
+            Keys.Add(key);
         }
     }
 }
