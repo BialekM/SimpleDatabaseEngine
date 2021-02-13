@@ -1,8 +1,6 @@
 ﻿using NUnit.Framework;
 using SimpleDatabaseEngine;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SimpleDatabaseEngineTests
 {
@@ -16,7 +14,7 @@ namespace SimpleDatabaseEngineTests
         [Test]
         public void AddKeysToNode()
         {
-            Node node = new Node();
+            var node = new Node();
             node.AddKeyToLeaf(5);
             node.AddKeyToLeaf(3);
             node.AddKeyToLeaf(10);
@@ -34,7 +32,7 @@ namespace SimpleDatabaseEngineTests
         [Test]
         public void AddDuplicateKeyToNode()
         {
-            BPlusTree tree = new BPlusTree(3, 5);
+            var tree = new BPlusTree(3, 5);
             tree.AddKeyToTree(15);
             tree.AddKeyToTree(25);
             tree.AddKeyToTree(35);
@@ -47,6 +45,20 @@ namespace SimpleDatabaseEngineTests
             //var node = tree.GoToLeaf(7, tree.Root);
             //var node1 = tree.GoToLeaf(16, tree.Root);
             Console.WriteLine("kaszanka");
+        }
+
+        [Test]
+        public void RemoveKeyWhenIsToLittleKeysInLeaf()
+        {
+            var tree = new BPlusTree(3, 5);
+            tree.AddKeyToTree(15);
+            tree.AddKeyToTree(20);
+            tree.AddKeyToTree(25);
+            tree.AddKeyToTree(30);
+            tree.AddKeyToTree(35);
+            tree.AddKeyToTree(45);
+            tree.AddKeyToTree(55);
+            tree.DeleteKey(20);
         }
     }
 }

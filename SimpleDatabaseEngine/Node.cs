@@ -6,34 +6,17 @@ namespace SimpleDatabaseEngine
     {
         public List<int> Keys = new List<int>();
         public Node Parent;
-        public bool isLeaf = true;
+        public bool IsLeaf = true;
         public List<Node> Children = new List<Node>();
-        public int maxNumberOfChild;
-        public int minNumberOfChild;
-        public int maxNumberOfKeys;
-        public int minNumberOfKeys;
-
-        public Node()
-        {
-
-        }
-        public Node(int value, Node parrent, int treeOrder)
-        {
-            Parent = parrent;
-            Keys.Add(value);
-            maxNumberOfChild = treeOrder;
-            minNumberOfChild = treeOrder / 2;
-            maxNumberOfKeys = treeOrder - 1;
-            minNumberOfKeys = (treeOrder / 2) - 1;
-            isLeaf = true;
-        }
+        public Node RightSibling;
+        public Node LeftSibling;
 
         public Node CreateChild(List<Node> children, List<int> keys, Node parent, bool isLeaf)
         {
-            Node node = new Node
+            var node = new Node
             {
                 Parent = parent,
-                isLeaf = isLeaf,
+                IsLeaf = isLeaf,
                 Children = children,
                 Keys = keys
             };
@@ -46,11 +29,6 @@ namespace SimpleDatabaseEngine
             return node;
         }
 
-        public bool isFull()
-        {
-            return (Keys.Count >= 3);
-        }
-
         //Add key in correct order + null check
         public void AddKeyToLeaf(int key  )
         {
@@ -59,7 +37,7 @@ namespace SimpleDatabaseEngine
                 Keys.Insert(0, key);
                 return;
             }
-            for (int i = 0; i < Keys.Count -1; ++i)
+            for (var i = 0; i < Keys.Count -1; ++i)
             {
                 if( key> Keys[i] && key < Keys[i + 1])
                 {
