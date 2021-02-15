@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace SimpleDatabaseEngine
 {
@@ -8,8 +9,8 @@ namespace SimpleDatabaseEngine
         public Node Parent;
         public bool IsLeaf = true;
         public List<Node> Children = new List<Node>();
-        public Node RightSibling;
-        public Node LeftSibling;
+        public Node NextLeaf;
+        public Node PreviousLeaf;
 
         public Node CreateChild(List<Node> children, List<int> keys, Node parent, bool isLeaf)
         {
@@ -46,6 +47,48 @@ namespace SimpleDatabaseEngine
                 }
             }
             Keys.Add(key);
+        }
+
+        public void AddChildInCorrectOrder(Node child)
+        {
+            if (Keys.Count > 0 && child.Keys[0] < Keys[0])
+            {
+                Children.Insert(0,child);
+                return;
+            }
+            for (var i = 0; i < Keys.Count - 1; ++i)
+            {
+                if (child.Keys[0] >= Keys[i] && child.Keys[^1] < Keys[i + 1])
+                {
+
+                    //Children[i].NextLeaf = child;
+                    //child.PreviousLeaf = Children[i];
+                    //child.NextLeaf = Children[i + 1];
+                    //if (Children[i] != null)
+                    //{
+                        child.NextLeaf = Children[i + 1];
+                        child.PreviousLeaf = child.NextLeaf.PreviousLeaf;
+                        child.PreviousLeaf.NextLeaf = child;
+                        child.NextLeaf.PreviousLeaf = child;
+                    //}
+                    Children.Insert(i + 1, child);
+
+ 
+                    return;
+                }
+            }
+            Children.Add(child);
+        }
+
+        public void ReplaceValueInParent(int key, int newKey)
+        {
+            if (Parent != null && Parent.Keys.Contains(key))
+            {
+                Parent.Keys[Parent.Keys.IndexOf(key)] = newKey;
+                return;
+            }
+
+            Parent?.ReplaceValueInParent(key, newKey);
         }
     }
 }

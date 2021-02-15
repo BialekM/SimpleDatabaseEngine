@@ -41,42 +41,42 @@ namespace SimpleDatabaseEngine
             //left child is old node
             var median = GetMedian();
             var newParentKey = node.Keys[median];
-            //if node is leaf rewrite the median key to parent
+            //if node is node rewrite the median key to parent
             //otherwise skip it
             var keysForBigger = node.IsLeaf
                 ? node.Keys.GetRange(median, node.Keys.Count - median)
             : node.Keys.GetRange(median + 1, node.Keys.Count - median - 1);
             
             parent.AddKeyToLeaf(newParentKey);
-            //Remove Keys from left leaf
+            //Remove Keys from left node
             RemoveKeys(median, node);
             
             //Create list for BiggerLeaf + Remove children from left (old node)
             if (node.Children.Count > 0)
             {
                 listOfChildrenForBigger = node.Children.GetRange(median + 1, node.Children.Count - median -1);
-                //Remove Keys from left leaf
+                //Remove Keys from left node
                 RemoveChildren(median + 1, node);
             }
 
             //Create Child for bigger Node and set Parent to children
             var biggerNode = parent.CreateChild(listOfChildrenForBigger, keysForBigger, parent, node.IsLeaf);
 
-            //Set right parent for leaf
+            //Set right parent for node
             if (node.IsLeaf)
             {
-                node.RightSibling = biggerNode;
-                node.RightSibling.LeftSibling = node;
+                node.NextLeaf = biggerNode;
+                node.NextLeaf.PreviousLeaf = node;
             }
 
             //special case when parent is just created new root
             if (parent == Root && isNewRoot) 
                 parent.Children.Add(node);
 
-            //Add Right Child
-            parent.Children.Add(biggerNode);
+            //Add Bigger Child
+            parent.AddChildInCorrectOrder(biggerNode);
 
-            //Parent have children - can't be leaf
+            //Parent have children - can't be node
             parent.IsLeaf = false;
 
             //check if parent should be split again
@@ -154,7 +154,7 @@ namespace SimpleDatabaseEngine
             {
                 if (key < node.Keys[i] && !node.IsLeaf || i == node.Children.Count)
                 {
-                    return FindLeafToAdd(key, node.Children[i]);
+                    return FindNodeWithKeysToDelete(key, node.Children[i]);
                 }
             }
 
@@ -164,36 +164,66 @@ namespace SimpleDatabaseEngine
         public void DeleteKey(int key)
         {
             var leaf = FindNodeWithKeysToDelete(key, Root);
-            var startIndex = leaf.Keys.IndexOf(key);
             leaf.Keys.Remove(key);
-            if (leaf.Keys.Count < _minNumberOfKey &&
-                leaf.RightSibling != null &&
-                leaf.RightSibling.Keys.Count > _minNumberOfKey)
+            if (leaf.Keys.Count >= _minNumberOfKey)
             {
-                var keyToMove = leaf.RightSibling.Keys[0];
-                leaf.Keys.Add(leaf.RightSibling.Keys[0]);
-                leaf.RightSibling.Keys.Remove(keyToMove);
-                leaf.Parent.Keys.Remove(keyToMove);
-                leaf.Parent.Keys.Add(leaf.RightSibling.Keys[0]);
+                leaf.ReplaceValueInParent(key, leaf.Keys[0]);
+                return;
             }
-            else if (leaf.RightSibling == null && startIndex == 0)
+            BalanceNode(leaf);
+        }
+
+        public void BalanceNode(Node node)
+        {
+            if (node.Keys.Count < _minNumberOfKey &&
+                node.NextLeaf != null &&
+                node.NextLeaf.Keys.Count > _minNumberOfKey
+                && node.NextLeaf.Parent == node.Parent)
             {
-                leaf.Parent.Keys.Remove(key);
-                leaf.Parent.Keys.Add(leaf.Keys[0]);
-            }else if (leaf.Keys.Count == 0 && leaf.RightSibling != null && leaf.RightSibling.Keys.Count > 0)
+                var keyToMove = node.NextLeaf.Keys[0];
+                node.Keys.Add(node.NextLeaf.Keys[0]);
+                node.NextLeaf.Keys.Remove(keyToMove);
+                node.ReplaceValueInParent(keyToMove, node.NextLeaf.Keys[0]);
+            }
+            else if (node.Keys.Count < _minNumberOfKey &&
+                     node.PreviousLeaf != null &&
+                     node.PreviousLeaf.Keys.Count > _minNumberOfKey &&
+                     node.PreviousLeaf.Parent == node.Parent)
             {
-                leaf.LeftSibling.RightSibling = leaf.RightSibling;
-                leaf.Parent.Children.Remove(leaf);
-                var keyToMove = leaf.RightSibling.Keys[0];
-                leaf = leaf.RightSibling;
-                leaf.Parent.Keys.Remove(keyToMove);
-                leaf.Parent.Parent.Keys[^1] = keyToMove;
+                var keyToMove = node.PreviousLeaf.Keys[^1];
+                node.Keys.Add(node.PreviousLeaf.Keys[^1]);
+                node.PreviousLeaf.Keys.Remove(keyToMove);
             }
             else
             {
+                var nodeToMerge = node;
+                if (node.NextLeaf?.Parent != node.Parent) //if right sibling does not exist
+                {
+                    nodeToMerge = node.PreviousLeaf;
+                }
 
+                for (var i = 0; i < nodeToMerge.Parent.Keys.Count; i++)
+                {
+                    if ((nodeToMerge.Keys.Count == 0 || nodeToMerge.Parent.Keys[i] > nodeToMerge.Keys[^1]) &&
+                        nodeToMerge.Parent.Keys[i] <= nodeToMerge.PreviousLeaf.Keys[0])
+                    {
+                        nodeToMerge.Parent.Keys.RemoveAt(i);
+                        break;
+                    }
+                }
+
+                nodeToMerge.Children.AddRange(nodeToMerge.NextLeaf.Children);
+                nodeToMerge.Keys.AddRange(nodeToMerge.NextLeaf.Keys);
+                var nodeToDelete = nodeToMerge.NextLeaf;
+                nodeToMerge.NextLeaf = nodeToMerge.NextLeaf.NextLeaf;
+
+                if (nodeToMerge.NextLeaf != null)
+                    nodeToMerge.NextLeaf.PreviousLeaf = nodeToMerge;
+
+                nodeToMerge.Parent.Children.Remove(nodeToDelete);
+                if(nodeToMerge != Root)
+                    BalanceNode(nodeToMerge.Parent);
             }
         }
-
     }
 }

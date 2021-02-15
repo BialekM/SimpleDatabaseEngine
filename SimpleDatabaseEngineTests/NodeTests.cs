@@ -41,6 +41,8 @@ namespace SimpleDatabaseEngineTests
             tree.AddKeyToTree(65);
             tree.AddKeyToTree(10);
             tree.AddKeyToTree(2);
+            tree.AddKeyToTree(21);
+            tree.DeleteKey(25);
             //tree.SplitNode(tree.Root);
             //var node = tree.GoToLeaf(7, tree.Root);
             //var node1 = tree.GoToLeaf(16, tree.Root);
