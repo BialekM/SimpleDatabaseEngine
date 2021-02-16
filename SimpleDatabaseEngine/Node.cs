@@ -31,49 +31,44 @@ namespace SimpleDatabaseEngine
         }
 
         //Add key in correct order + null check
-        public void AddKeyToLeaf(int key  )
+        public bool TryAddKeyToNode(int key)
         {
+            if (Keys.Contains(key))
+                return false;
             if (Keys.Count > 0 && key < Keys[0])
             {
                 Keys.Insert(0, key);
-                return;
+                return true;
             }
             for (var i = 0; i < Keys.Count -1; ++i)
             {
                 if( key> Keys[i] && key < Keys[i + 1])
                 {
                     Keys.Insert(i + 1, key);
-                    return;
+                    return true;
                 }
             }
             Keys.Add(key);
+            return true;
         }
 
         public void AddChildInCorrectOrder(Node child)
         {
             if (Keys.Count > 0 && child.Keys[0] < Keys[0])
             {
-                Children.Insert(0,child);
+                Children.Insert(0, child);
                 return;
             }
+
             for (var i = 0; i < Keys.Count - 1; ++i)
             {
                 if (child.Keys[0] >= Keys[i] && child.Keys[^1] < Keys[i + 1])
                 {
-
-                    //Children[i].NextLeaf = child;
-                    //child.PreviousLeaf = Children[i];
-                    //child.NextLeaf = Children[i + 1];
-                    //if (Children[i] != null)
-                    //{
-                        child.NextLeaf = Children[i + 1];
-                        child.PreviousLeaf = child.NextLeaf.PreviousLeaf;
-                        child.PreviousLeaf.NextLeaf = child;
-                        child.NextLeaf.PreviousLeaf = child;
-                    //}
+                    child.NextLeaf = Children[i + 1];
+                    child.PreviousLeaf = child.NextLeaf.PreviousLeaf;
+                    child.PreviousLeaf.NextLeaf = child;
+                    child.NextLeaf.PreviousLeaf = child;
                     Children.Insert(i + 1, child);
-
- 
                     return;
                 }
             }

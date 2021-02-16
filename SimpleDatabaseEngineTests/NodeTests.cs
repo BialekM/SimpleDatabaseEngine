@@ -1,26 +1,21 @@
 ﻿using NUnit.Framework;
 using SimpleDatabaseEngine;
-using System;
 
 namespace SimpleDatabaseEngineTests
 {
     class NodeTests
     {
-        [SetUp]
-        public void Setup()
-        { 
-        }
 
         [Test]
-        public void AddKeysToNode()
+        public void AddKeysToNodeExpectCorrectOrder()
         {
             var node = new Node();
-            node.AddKeyToLeaf(5);
-            node.AddKeyToLeaf(3);
-            node.AddKeyToLeaf(10);
-            node.AddKeyToLeaf(11);
-            node.AddKeyToLeaf(2);
-            node.AddKeyToLeaf(21);
+            node.TryAddKeyToNode(5);
+            node.TryAddKeyToNode(3);
+            node.TryAddKeyToNode(10);
+            node.TryAddKeyToNode(11);
+            node.TryAddKeyToNode(2);
+            node.TryAddKeyToNode(21);
             Assert.AreEqual(2, node.Keys[0]);
             Assert.AreEqual(3, node.Keys[1]);
             Assert.AreEqual(5, node.Keys[2]);
@@ -29,38 +24,20 @@ namespace SimpleDatabaseEngineTests
             Assert.AreEqual(21, node.Keys[5]);
         }
 
+
         [Test]
-        public void AddDuplicateKeyToNode()
+        public void TryAddDuplicateKeyToNode()
         {
             var tree = new BPlusTree(3, 5);
-            tree.AddKeyToTree(15);
-            tree.AddKeyToTree(25);
-            tree.AddKeyToTree(35);
-            tree.AddKeyToTree(45);
-            tree.AddKeyToTree(50);
-            tree.AddKeyToTree(65);
-            tree.AddKeyToTree(10);
-            tree.AddKeyToTree(2);
-            tree.AddKeyToTree(21);
-            tree.DeleteKey(25);
-            //tree.SplitNode(tree.Root);
-            //var node = tree.GoToLeaf(7, tree.Root);
-            //var node1 = tree.GoToLeaf(16, tree.Root);
-            Console.WriteLine("kaszanka");
+            Assert.AreEqual(false,tree.TryAddKeyToTree(5));
         }
 
         [Test]
         public void RemoveKeyWhenIsToLittleKeysInLeaf()
         {
-            var tree = new BPlusTree(3, 5);
-            tree.AddKeyToTree(15);
-            tree.AddKeyToTree(20);
-            tree.AddKeyToTree(25);
-            tree.AddKeyToTree(30);
-            tree.AddKeyToTree(35);
-            tree.AddKeyToTree(45);
-            tree.AddKeyToTree(55);
-            tree.DeleteKey(20);
+            var node = new Node();
+            Assert.AreEqual(true,node.TryAddKeyToNode(5));
+            Assert.AreEqual(false,node.TryAddKeyToNode(5));
         }
     }
 }

@@ -16,7 +16,7 @@ namespace SimpleDatabaseEngine
             _minNumberOfKey = (int)Math.Ceiling((float)_treeOrder / 2) - 1;
             _maxNumberOfKey = _treeOrder - 1;
             _minimumNumberOfChild = _treeOrder / 2;
-            Root.AddKeyToLeaf(key);
+            Root.TryAddKeyToNode(key);
         }
 
         public void SplitNode(Node node)
@@ -47,7 +47,7 @@ namespace SimpleDatabaseEngine
                 ? node.Keys.GetRange(median, node.Keys.Count - median)
             : node.Keys.GetRange(median + 1, node.Keys.Count - median - 1);
             
-            parent.AddKeyToLeaf(newParentKey);
+            parent.TryAddKeyToNode(newParentKey);
             //Remove Keys from left node
             RemoveKeys(median, node);
             
@@ -112,12 +112,16 @@ namespace SimpleDatabaseEngine
             return (int) Math.Ceiling((float) (_treeOrder + 1) / 2) -1;
         }
 
-        public void AddKeyToTree(int key)
+        public bool TryAddKeyToTree(int key)
         {
             var leaf = FindLeafToAdd(key, Root);
-            leaf.AddKeyToLeaf(key);
+            if (leaf.Keys.Contains(key))
+                return false;
+
+            leaf.TryAddKeyToNode(key);
             if (IsFull(leaf))
-                SplitNode(leaf);              
+                SplitNode(leaf);
+            return true;
         }
 
         private bool IsFull(Node node)
