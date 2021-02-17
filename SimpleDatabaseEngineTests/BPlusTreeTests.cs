@@ -72,10 +72,41 @@ namespace SimpleDatabaseEngineTests
             Assert.AreEqual(null, tree.Root.Children[1].Children[1].NextLeaf);
         }
 
+        [Test]
         public void TryAddDuplicateKeyToTree()
         {
             var tree = new BPlusTree(3, 5);
             Assert.AreEqual(false, tree.TryAddKeyToTree(5));
         }
+
+        [Test]
+        public void FindLeafWithKey()
+        {
+            var tree = new BPlusTree(3, 5);
+            tree.TryAddKeyToTree(3);
+            tree.TryAddKeyToTree(10);
+            tree.TryAddKeyToTree(15);
+            tree.TryAddKeyToTree(20);
+            tree.TryAddKeyToTree(12);
+            tree.TryAddKeyToTree(14);
+            var foundNode = tree.FindLeafWithKey(20,tree.Root);
+            Assert.AreEqual(foundNode,tree.Root.Children[1].Children[2]);
+        }
+
+        [Test]
+        public void FindLeafToAdd()
+        {
+            var tree = new BPlusTree(3, 5);
+            tree.TryAddKeyToTree(3);
+            tree.TryAddKeyToTree(10);
+            tree.TryAddKeyToTree(15);
+            tree.TryAddKeyToTree(20);
+            tree.TryAddKeyToTree(12);
+            tree.TryAddKeyToTree(14);
+            var foundNode = tree.FindLeafToAdd(25, tree.Root);
+            Assert.AreEqual(15, foundNode.Keys[0] );
+            Assert.AreEqual(20, foundNode.Keys[1]);
+        }
+
     }
 }

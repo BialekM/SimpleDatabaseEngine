@@ -9,7 +9,9 @@ namespace SimpleDatabaseEngine
         private int _maxNumberOfKey;
         private int _minNumberOfKey;
         private int _minimumNumberOfChild;
+
         public Node Root = new Node();
+
         public BPlusTree(int treeOrder, int key)
         {
             _treeOrder = treeOrder;
@@ -60,7 +62,7 @@ namespace SimpleDatabaseEngine
             }
 
             //Create Child for bigger Node and set Parent to children
-            var biggerNode = parent.CreateChild(listOfChildrenForBigger, keysForBigger, parent, node.IsLeaf);
+            var biggerNode = parent.AppendChild(listOfChildrenForBigger, keysForBigger, parent, node.IsLeaf);
 
             //Set right parent for node
             if (node.IsLeaf)
@@ -87,31 +89,6 @@ namespace SimpleDatabaseEngine
                 
         }
 
-        private void RemoveKeys(int index, Node node)
-        {
-            var newKeys = new List<int>();
-            for(var i = 0; i < index; i++)
-            {
-                newKeys.Add(node.Keys[i]);
-            }
-            node.Keys = newKeys;
-        }
-
-        private void RemoveChildren(int index, Node node)
-        {
-            var newChildren = new List<Node>();
-            for(var i = 0; i < index; i++)
-            {
-                newChildren.Add(node.Children[i]);
-            }
-            node.Children = newChildren;
-        }
-
-        private int GetMedian()
-        {
-            return (int) Math.Ceiling((float) (_treeOrder + 1) / 2) -1;
-        }
-
         public bool TryAddKeyToTree(int key)
         {
             var leaf = FindLeafToAdd(key, Root);
@@ -122,11 +99,6 @@ namespace SimpleDatabaseEngine
             if (IsFull(leaf))
                 SplitNode(leaf);
             return true;
-        }
-
-        private bool IsFull(Node node)
-        {
-            return node.Keys.Count >= _treeOrder;
         }
 
         public Node FindLeafToAdd(int key, Node node)
@@ -146,7 +118,7 @@ namespace SimpleDatabaseEngine
             return key > node.Keys[^1] ? FindLeafToAdd(key, node.Children[^1]) : node;
         }
 
-        public Node FindNodeWithKeysToDelete(int key, Node node)
+        public Node FindLeafWithKey(int key, Node node)
         {
             if (node.IsLeaf)
             {
@@ -158,52 +130,47 @@ namespace SimpleDatabaseEngine
             {
                 if (key < node.Keys[i] && !node.IsLeaf || i == node.Children.Count)
                 {
-                    return FindNodeWithKeysToDelete(key, node.Children[i]);
+                    return FindLeafWithKey(key, node.Children[i]);
                 }
             }
 
-            return FindNodeWithKeysToDelete(key, node.Children[^1]);
+            return FindLeafWithKey(key, node.Children[^1]);
         }
 
         public void DeleteKey(int key)
         {
-            var leaf = FindNodeWithKeysToDelete(key, Root);
+            var leaf = FindLeafWithKey(key, Root);
             leaf.Keys.Remove(key);
             if (leaf.Keys.Count >= _minNumberOfKey)
             {
                 leaf.ReplaceValueInParent(key, leaf.Keys[0]);
                 return;
             }
-            BalanceNode(leaf);
-        }
-
-        public void BalanceNode(Node node)
-        {
-            if (node.Keys.Count < _minNumberOfKey &&
-                node.NextLeaf != null &&
-                node.NextLeaf.Keys.Count > _minNumberOfKey
-                && node.NextLeaf.Parent == node.Parent)
+            if (leaf.Keys.Count < _minNumberOfKey &&
+                leaf.NextLeaf != null &&
+                leaf.NextLeaf.Keys.Count > _minNumberOfKey
+                && leaf.NextLeaf.Parent == leaf.Parent)
             {
-                var keyToMove = node.NextLeaf.Keys[0];
-                node.Keys.Add(node.NextLeaf.Keys[0]);
-                node.NextLeaf.Keys.Remove(keyToMove);
-                node.ReplaceValueInParent(keyToMove, node.NextLeaf.Keys[0]);
+                var keyToMove = leaf.NextLeaf.Keys[0];
+                leaf.Keys.Add(leaf.NextLeaf.Keys[0]);
+                leaf.NextLeaf.Keys.Remove(keyToMove);
+                leaf.ReplaceValueInParent(keyToMove, leaf.NextLeaf.Keys[0]);
             }
-            else if (node.Keys.Count < _minNumberOfKey &&
-                     node.PreviousLeaf != null &&
-                     node.PreviousLeaf.Keys.Count > _minNumberOfKey &&
-                     node.PreviousLeaf.Parent == node.Parent)
+            else if (leaf.Keys.Count < _minNumberOfKey &&
+                     leaf.PreviousLeaf != null &&
+                     leaf.PreviousLeaf.Keys.Count > _minNumberOfKey &&
+                     leaf.PreviousLeaf.Parent == leaf.Parent)
             {
-                var keyToMove = node.PreviousLeaf.Keys[^1];
-                node.Keys.Add(node.PreviousLeaf.Keys[^1]);
-                node.PreviousLeaf.Keys.Remove(keyToMove);
+                var keyToMove = leaf.PreviousLeaf.Keys[^1];
+                leaf.Keys.Add(leaf.PreviousLeaf.Keys[^1]);
+                leaf.PreviousLeaf.Keys.Remove(keyToMove);
             }
             else
             {
-                var nodeToMerge = node;
-                if (node.NextLeaf?.Parent != node.Parent) //if right sibling does not exist
+                var nodeToMerge = leaf;
+                if (leaf.NextLeaf?.Parent != leaf.Parent) //if right sibling does not exist
                 {
-                    nodeToMerge = node.PreviousLeaf;
+                    nodeToMerge = leaf.PreviousLeaf;
                 }
 
                 for (var i = 0; i < nodeToMerge.Parent.Keys.Count; i++)
@@ -225,9 +192,46 @@ namespace SimpleDatabaseEngine
                     nodeToMerge.NextLeaf.PreviousLeaf = nodeToMerge;
 
                 nodeToMerge.Parent.Children.Remove(nodeToDelete);
-                if(nodeToMerge != Root)
+                if (nodeToMerge != Root)
                     BalanceNode(nodeToMerge.Parent);
             }
+
+            //BalanceNode(leaf);
+        }
+
+        public void BalanceNode(Node node)
+        {
+
+        }
+
+        private bool IsFull(Node node)
+        {
+            return node.Keys.Count >= _treeOrder;
+        }
+
+        private void RemoveKeys(int index, Node node)
+        {
+            var newKeys = new List<int>();
+            for (var i = 0; i < index; i++)
+            {
+                newKeys.Add(node.Keys[i]);
+            }
+            node.Keys = newKeys;
+        }
+
+        private void RemoveChildren(int index, Node node)
+        {
+            var newChildren = new List<Node>();
+            for (var i = 0; i < index; i++)
+            {
+                newChildren.Add(node.Children[i]);
+            }
+            node.Children = newChildren;
+        }
+
+        private int GetMedian()
+        {
+            return (int)Math.Ceiling((float)(_treeOrder + 1) / 2) - 1;
         }
     }
 }

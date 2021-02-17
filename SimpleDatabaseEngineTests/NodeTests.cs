@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Collections.Generic;
+using NUnit.Framework;
 using SimpleDatabaseEngine;
 
 namespace SimpleDatabaseEngineTests
@@ -24,7 +25,6 @@ namespace SimpleDatabaseEngineTests
             Assert.AreEqual(21, node.Keys[5]);
         }
 
-
         [Test]
         public void TryAddDuplicateKeyToNode()
         {
@@ -33,11 +33,50 @@ namespace SimpleDatabaseEngineTests
         }
 
         [Test]
-        public void RemoveKeyWhenIsToLittleKeysInLeaf()
+        public void AppendChild()
         {
-            var node = new Node();
-            Assert.AreEqual(true,node.TryAddKeyToNode(5));
-            Assert.AreEqual(false,node.TryAddKeyToNode(5));
+            var node = new Node { Keys = new List<int>(6) };
+            var children = new List<Node> { new Node { Keys = new List<int> { 7 } } };
+            var keys = new List<int> { 8 };
+            var parent = new Node { Keys = new List<int> { 5 } };
+            var newNode = node.AppendChild(children, keys, parent, true);
+
+            Assert.AreEqual(true, newNode.Children[0].IsLeaf);
+            Assert.AreEqual(8, newNode.Keys[0]);
+            Assert.AreEqual(7, newNode.Children[0].Keys[0]);
+            Assert.AreEqual(5, newNode.Parent.Keys[0]);
+            Assert.AreEqual(newNode, newNode.Children[0].Parent);
+        }
+
+        [Test]
+        public void AppendChildrenInCorrectOrder()
+        {
+            var parent = new Node { Keys = new List<int> { 5 } };
+            parent.AddChildInCorrectOrder(new Node { Keys = new List<int> { 11 } });
+            parent.TryAddKeyToNode(10);
+            parent.AddChildInCorrectOrder(new Node { Keys = new List<int> { 16 } });
+            parent.TryAddKeyToNode(15);
+            parent.AddChildInCorrectOrder(new Node { Keys = new List<int> { 4 } });
+            parent.TryAddKeyToNode(25);
+            parent.AddChildInCorrectOrder(new Node { Keys = new List<int> { 26 } });
+            parent.TryAddKeyToNode(35);
+            parent.AddChildInCorrectOrder(new Node { Keys = new List<int> { 17 } });
+            parent.AddChildInCorrectOrder(new Node { Keys = new List<int> { 36 } });
+
+            Assert.AreEqual(4,parent.Children[0].Keys[0]);
+            Assert.AreEqual(11, parent.Children[1].Keys[0]);
+            Assert.AreEqual(16, parent.Children[2].Keys[0]);
+            Assert.AreEqual(17, parent.Children[3].Keys[0]);
+            Assert.AreEqual(26, parent.Children[4].Keys[0]);
+            Assert.AreEqual(36, parent.Children[5].Keys[0]);
+        }
+
+        [Test]
+        public void ReplaceValueInParent()
+        {
+            var node = new Node {Parent = new Node {Keys = new List<int> {10}}};
+            node.ReplaceValueInParent(10,11);
+            Assert.AreEqual(11,node.Parent.Keys[0]);
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace SimpleDatabaseEngine
 {
@@ -12,7 +11,7 @@ namespace SimpleDatabaseEngine
         public Node NextLeaf;
         public Node PreviousLeaf;
 
-        public Node CreateChild(List<Node> children, List<int> keys, Node parent, bool isLeaf)
+        public Node AppendChild(List<Node> children, List<int> keys, Node parent, bool isLeaf)
         {
             var node = new Node
             {
@@ -40,9 +39,9 @@ namespace SimpleDatabaseEngine
                 Keys.Insert(0, key);
                 return true;
             }
-            for (var i = 0; i < Keys.Count -1; ++i)
+            for (var i = 0; i < Keys.Count - 1; ++i)
             {
-                if( key> Keys[i] && key < Keys[i + 1])
+                if (key > Keys[i] && key < Keys[i + 1])
                 {
                     Keys.Insert(i + 1, key);
                     return true;
@@ -65,9 +64,9 @@ namespace SimpleDatabaseEngine
                 if (child.Keys[0] >= Keys[i] && child.Keys[^1] < Keys[i + 1])
                 {
                     child.NextLeaf = Children[i + 1];
-                    child.PreviousLeaf = child.NextLeaf.PreviousLeaf;
-                    child.PreviousLeaf.NextLeaf = child;
-                    child.NextLeaf.PreviousLeaf = child;
+                    child.PreviousLeaf = child.NextLeaf?.PreviousLeaf;
+                    if (child.PreviousLeaf != null) child.PreviousLeaf.NextLeaf = child;
+                    if (child.NextLeaf != null) child.NextLeaf.PreviousLeaf = child;
                     Children.Insert(i + 1, child);
                     return;
                 }
