@@ -63,10 +63,6 @@ namespace SimpleDatabaseEngine
             {
                 if (child.Keys[0] >= Keys[i] && child.Keys[^1] < Keys[i + 1])
                 {
-                    //child.NextLeaf = Children[i + 1];
-                    //child.PreviousLeaf = child.NextLeaf?.PreviousLeaf;
-                    //if (child.PreviousLeaf != null) child.PreviousLeaf.NextLeaf = child;
-                    //if (child.NextLeaf != null) child.NextLeaf.PreviousLeaf = child;
                     Children.Insert(i + 1, child);
                     return;
                 }

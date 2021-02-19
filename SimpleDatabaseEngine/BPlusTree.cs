@@ -170,9 +170,9 @@ namespace SimpleDatabaseEngine
                     var keyToMove = nextSibling.Keys[0];
                     var childToMove = nextSibling.Children[0];
                     node.Parent.Keys.Add(nextSibling.Keys[0]);
-                    node.Keys.Add(node.Parent.Keys[0]);
+                    node.TryAddKeyToNode(node.Parent.Keys[0]);
                     node.Parent.Keys.Remove(node.Parent.Keys[0]);
-                    node.Children.Add(childToMove);
+                    node.AddChildInCorrectOrder(childToMove);
                     childToMove.Parent = node;
 
                     nextSibling.Keys.Remove(keyToMove);
@@ -182,8 +182,15 @@ namespace SimpleDatabaseEngine
                 case true when previousSibling != null && previousSibling.Keys.Count > _minNumberOfKey:
                 {
                     var keyToMove = previousSibling.Keys[^1];
-                    node.Keys.Add(previousSibling.Keys[^1]);
+                    var childToMove = previousSibling.Children[^1];
+                    node.Parent.TryAddKeyToNode(previousSibling.Keys[^1]);
+                    node.Keys.Add(node.Parent.Keys[^1]);
+                    node.Parent.Keys.Remove(node.Parent.Keys[^1]);
+                    node.AddChildInCorrectOrder(childToMove);
+                    childToMove.Parent = node;
+
                     previousSibling.Keys.Remove(keyToMove);
+                    previousSibling.Children.Remove(childToMove);
                     break;
                 }
                 default:
@@ -250,6 +257,15 @@ namespace SimpleDatabaseEngine
         public void DeleteKey(int key)
         {
             var leaf = FindLeafWithKey(key, Root);
+            if (leaf == Root)
+            {
+                leaf.Keys.Remove(key);
+                return;
+            }
+            //check if leaf is edge left
+            var edgeLeftCase = (leaf.Parent.Children[0] == leaf);
+
+            var firstChildKey = leaf.Parent.Children[0].Keys[0];
             leaf.Keys.Remove(key);
 
             if (leaf.Keys.Count >= _minNumberOfKey)
@@ -273,22 +289,32 @@ namespace SimpleDatabaseEngine
                     var keyToMove = leaf.PreviousLeaf.Keys[^1];
                     leaf.Keys.Add(leaf.PreviousLeaf.Keys[^1]);
                     leaf.PreviousLeaf.Keys.Remove(keyToMove);
-                    leaf.ReplaceValueInParent(keyToMove, key);
+                    leaf.ReplaceValueInParent(key, keyToMove);
                     break;
                 }
                 default:
                 {
                     var nodeToMerge = leaf;
+                    
                     if (leaf.NextLeaf?.Parent != leaf.Parent) //if right sibling does not exist
                     {
                         nodeToMerge = leaf.PreviousLeaf;
                     }
-                    //nodeToMerge.DeleteValueInParent(key);
 
                     nodeToMerge.Children.AddRange(nodeToMerge.NextLeaf.Children);
                     nodeToMerge.Keys.AddRange(nodeToMerge.NextLeaf.Keys);
 
-                    nodeToMerge.DeleteValueInParent(key);
+                    //nodeToMerge.DeleteValueInParent(key);
+
+                    if (nodeToMerge?.NextLeaf  != null && nodeToMerge?.NextLeaf?.Keys.Count != 0 && edgeLeftCase)
+                    {
+                        nodeToMerge.Parent.Keys.Remove(nodeToMerge.NextLeaf.Keys[0]);
+                    }
+
+                    if (!edgeLeftCase)
+                    {
+                        nodeToMerge.Parent.Keys.Remove(key);
+                    }
                     var nodeToDelete = nodeToMerge.NextLeaf;
                     nodeToMerge.NextLeaf = nodeToMerge.NextLeaf.NextLeaf;
 
@@ -296,7 +322,8 @@ namespace SimpleDatabaseEngine
                         nodeToMerge.NextLeaf.PreviousLeaf = nodeToMerge;
 
                     nodeToMerge.Parent.Children.Remove(nodeToDelete);
-                    nodeToMerge.ReplaceValueInParent(key,nodeToMerge.Keys[0]);
+
+                    nodeToMerge.ReplaceValueInParent(firstChildKey, nodeToMerge.Parent.Children[0].Keys[0]);
                     if (nodeToMerge != Root)
                         BalanceTree(nodeToMerge.Parent);
                     break;

@@ -158,34 +158,36 @@ namespace SimpleDatabaseEngineTests
         }
 
         [Test]
-        public void DeleteFromTreeWithMergeLessChild()
+        public void EmptyTreeTest()
         {
-            var tree = new BPlusTree(3, 10);
-            tree.TryAddKeyToTree(5);
+            var tree = new BPlusTree(3, 5);
+            tree.TryAddKeyToTree(10);
             tree.TryAddKeyToTree(15);
             tree.TryAddKeyToTree(20);
             tree.TryAddKeyToTree(25);
-            tree.TryAddKeyToTree(6);
-            tree.TryAddKeyToTree(7);
-            tree.TryAddKeyToTree(8);
-            tree.TryAddKeyToTree(9);
-            tree.TryAddKeyToTree(11);
-            tree.TryAddKeyToTree(12);
-            tree.TryAddKeyToTree(13);
-            tree.TryAddKeyToTree(14);
-            tree.DeleteKey(8);
-            tree.DeleteKey(7);
-            tree.DeleteKey(6);
-            tree.DeleteKey(25);
+            tree.TryAddKeyToTree(30);
+            tree.TryAddKeyToTree(35);
+            tree.TryAddKeyToTree(40);
+            tree.TryAddKeyToTree(45);
+            tree.TryAddKeyToTree(50);
+            tree.TryAddKeyToTree(55);
+            tree.TryAddKeyToTree(41);
+            tree.TryAddKeyToTree(42);
+            tree.DeleteKey(50);
+            tree.DeleteKey(55);
+            tree.DeleteKey(42);
+            tree.DeleteKey(41);
+            tree.DeleteKey(40);
+            tree.DeleteKey(45);
+            tree.DeleteKey(30);
+            tree.DeleteKey(35);
             tree.DeleteKey(20);
+            tree.DeleteKey(25);
             tree.DeleteKey(15);
-            tree.DeleteKey(5);
             tree.DeleteKey(10);
-            tree.DeleteKey(9);
-            tree.DeleteKey(11);
-            tree.DeleteKey(13);
-            tree.DeleteKey(12);
-            tree.DeleteKey(14);
+            tree.DeleteKey(5);
+            Assert.AreEqual(0, tree.Root.Keys.Count);
+            Assert.AreEqual(0, tree.Root.Children.Count);
         }
     }
 }
