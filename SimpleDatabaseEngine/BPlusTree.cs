@@ -6,9 +6,7 @@ namespace SimpleDatabaseEngine
     public class BPlusTree
     {
         private readonly int _treeOrder;
-        private int _maxNumberOfKey;
-        private int _minNumberOfKey;
-        private int _minimumNumberOfChild;
+        private readonly int _minNumberOfKey;
 
         public Node Root = new Node();
 
@@ -16,8 +14,6 @@ namespace SimpleDatabaseEngine
         {
             _treeOrder = treeOrder;
             _minNumberOfKey = (int)Math.Ceiling((float)_treeOrder / 2) - 1;
-            _maxNumberOfKey = _treeOrder - 1;
-            _minimumNumberOfChild = _treeOrder / 2;
             Root.TryAddKeyToNode(key);
         }
 
@@ -64,7 +60,7 @@ namespace SimpleDatabaseEngine
             //Create Child for bigger Node and set Parent to children
             var biggerNode = parent.AppendChild(listOfChildrenForBigger, keysForBigger, parent, node.IsLeaf);
 
-            //Set right parent for node
+            //Set previous and next leaf
             if (node.IsLeaf)
             {
                 var nextLeaf = node.NextLeaf;
