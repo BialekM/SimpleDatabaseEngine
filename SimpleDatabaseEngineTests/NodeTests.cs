@@ -28,7 +28,7 @@ namespace SimpleDatabaseEngineTests
         [Test]
         public void TryAddDuplicateKeyToNode()
         {
-            var tree = new BPlusTree(3, 5);
+            var tree = new BPlusTree( 5);
             Assert.AreEqual(false,tree.TryAddKeyToTree(5));
         }
 
@@ -39,13 +39,14 @@ namespace SimpleDatabaseEngineTests
             var children = new List<Node> { new Node { Keys = new List<int> { 7 } } };
             var keys = new List<int> { 8 };
             var parent = new Node { Keys = new List<int> { 5 } };
-            var newNode = node.AppendChild(children, keys, parent, true);
+            node = new NodeBuilder().SetChildren(children).SetKeys(keys).SetParent(parent).SetIsLeaf(true).GetNode();
+            node.SetParentForChildren();
 
-            Assert.AreEqual(true, newNode.Children[0].IsLeaf);
-            Assert.AreEqual(8, newNode.Keys[0]);
-            Assert.AreEqual(7, newNode.Children[0].Keys[0]);
-            Assert.AreEqual(5, newNode.Parent.Keys[0]);
-            Assert.AreEqual(newNode, newNode.Children[0].Parent);
+            Assert.AreEqual(true, node.Children[0].IsLeaf);
+            Assert.AreEqual(8, node.Keys[0]);
+            Assert.AreEqual(7, node.Children[0].Keys[0]);
+            Assert.AreEqual(5, node.Parent.Keys[0]);
+            Assert.AreEqual(node, node.Children[0].Parent);
         }
 
         [Test]

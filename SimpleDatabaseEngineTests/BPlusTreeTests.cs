@@ -9,7 +9,7 @@ namespace SimpleDatabaseEngineTests
         [Test]
         public void AddMaxNumberOfKeysToRoot()
         {
-            var tree = new BPlusTree(3, 5);
+            var tree = new BPlusTree(5);
             tree.TryAddKeyToTree(3);
 
             Assert.AreEqual(true, tree.Root.IsLeaf);
@@ -23,7 +23,7 @@ namespace SimpleDatabaseEngineTests
         [Test]
         public void SingleSplitRoot()
         {
-            var tree = new BPlusTree(3, 5);
+            var tree = new BPlusTree( 5);
             tree.TryAddKeyToTree(3);
             tree.TryAddKeyToTree(10);
 
@@ -43,7 +43,7 @@ namespace SimpleDatabaseEngineTests
         [Test]
         public void MultipleSplit()
         {
-            var tree = new BPlusTree(3, 5);
+            var tree = new BPlusTree(5);
             tree.TryAddKeyToTree(3);
             tree.TryAddKeyToTree(10);
             tree.TryAddKeyToTree(15);
@@ -76,14 +76,14 @@ namespace SimpleDatabaseEngineTests
         [Test]
         public void TryAddDuplicateKeyToTree()
         {
-            var tree = new BPlusTree(3, 5);
+            var tree = new BPlusTree(5);
             Assert.AreEqual(false, tree.TryAddKeyToTree(5));
         }
 
         [Test]
         public void FindLeafWithKey()
         {
-            var tree = new BPlusTree(3, 5);
+            var tree = new BPlusTree( 5);
             tree.TryAddKeyToTree(3);
             tree.TryAddKeyToTree(10);
             tree.TryAddKeyToTree(15);
@@ -97,7 +97,7 @@ namespace SimpleDatabaseEngineTests
         [Test]
         public void FindLeafToAdd()
         {
-            var tree = new BPlusTree(3, 5);
+            var tree = new BPlusTree(5);
             tree.TryAddKeyToTree(3);
             tree.TryAddKeyToTree(10);
             tree.TryAddKeyToTree(15);
@@ -112,7 +112,7 @@ namespace SimpleDatabaseEngineTests
         [Test]
         public void DeleteFromTreeWithMergeBiggerChild()
         {
-            var tree = new BPlusTree(3, 10);
+            var tree = new BPlusTree(10);
             tree.TryAddKeyToTree(5);
             tree.TryAddKeyToTree(15);
             tree.TryAddKeyToTree(20);
@@ -137,7 +137,7 @@ namespace SimpleDatabaseEngineTests
         [Test]
         public void DeleteFromTreeWithMergeMediumChild()
         {
-            var tree = new BPlusTree(3, 10);
+            var tree = new BPlusTree(10);
             tree.TryAddKeyToTree(5);
             tree.TryAddKeyToTree(15);
             tree.TryAddKeyToTree(20);
@@ -160,7 +160,7 @@ namespace SimpleDatabaseEngineTests
         [Test]
         public void EmptyTreeTest()
         {
-            var tree = new BPlusTree(3, 5);
+            var tree = new BPlusTree(5);
             tree.TryAddKeyToTree(10);
             tree.TryAddKeyToTree(15);
             tree.TryAddKeyToTree(20);
