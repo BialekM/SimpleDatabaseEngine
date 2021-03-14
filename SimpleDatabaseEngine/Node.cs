@@ -6,7 +6,7 @@ namespace SimpleDatabaseEngine
     public class Node
     {
         private const int TreeOrder = 3;
-        public List<int> Keys = new List<int>();
+        public SortedList<int, string> KvpList = new SortedList<int, string>();
         public Node Parent { get; set; }
         public bool IsLeaf { get; set; } = true;
         public List<Node> Children { get; set; } = new List<Node>();
@@ -16,36 +16,36 @@ namespace SimpleDatabaseEngine
         //Add key in correct order + null check
         public bool TryAddKeyToNode(int key)
         {
-            if (Keys.Contains(key))
+            if (KvpList.Keys.Contains(key))
                 return false;
-            if (Keys.Any() && key < Keys[0])
+            if (KvpList.Any() && key < KvpList.Keys[0])
             {
-                Keys.Insert(0, key);
+                KvpList.Keys.Insert(0, key);
                 return true;
             }
-            for (var i = 0; i < Keys.Count - 1; ++i)
+            for (var i = 0; i < KvpList.Count - 1; ++i)
             {
-                if (key > Keys[i] && key < Keys[i + 1])
+                if (key > KvpList.Keys[i] && key < KvpList.Keys[i + 1])
                 {
-                    Keys.Insert(i + 1, key);
+                    KvpList.Keys.Insert(i + 1, key);
                     return true;
                 }
             }
-            Keys.Add(key);
+            KvpList.Keys.Add(key);
             return true;
         }
 
         public void AddChildInCorrectOrder(Node child)
         {
-            if (Keys.Any() && child.Keys[0] < Keys[0])
+            if (KvpList.Any() && child.KvpList.Keys[0] < KvpList.Keys[0])
             {
                 Children.Insert(0, child);
                 return;
             }
 
-            for (var i = 0; i < Keys.Count - 1; ++i)
+            for (var i = 0; i < KvpList.Count - 1; ++i)
             {
-                if (child.Keys[0] >= Keys[i] && child.Keys[^1] < Keys[i + 1])
+                if (child.KvpList.Keys[0] >= KvpList.Keys[i] && child.KvpList.Keys[^1] < KvpList.Keys[i + 1])
                 {
                     Children.Insert(i + 1, child);
                     return;
@@ -56,9 +56,9 @@ namespace SimpleDatabaseEngine
 
         public void ReplaceValueInParent(int key, int newKey)
         {
-            if (Parent != null && Parent.Keys.Contains(key))
+            if (Parent != null && Parent.KvpList.Keys.Contains(key))
             {
-                Parent.Keys[Parent.Keys.IndexOf(key)] = newKey;
+                Parent.KvpList.Keys[Parent.KvpList.Keys.IndexOf(key)] = newKey;
                 return;
             }
 
@@ -67,9 +67,9 @@ namespace SimpleDatabaseEngine
 
         public void DeleteValueInParent(int key)
         {
-            if (Parent != null && Parent.Keys.Contains(key))
+            if (Parent != null && Parent.KvpList.Keys.Contains(key))
             {
-                Parent.Keys.Remove(key);
+                Parent.KvpList.Remove(key);
                 return;
             }
 
@@ -78,12 +78,13 @@ namespace SimpleDatabaseEngine
 
         public bool IsFull()
         {
-            return Keys.Count >= TreeOrder;
+            return KvpList.Count >= TreeOrder;
         }
 
         public void RemoveKeysFromIndex(int index)
         {
-            Keys.RemoveRange(index, Keys.Count - index);
+            for(int i = index; i < KvpList.Count - index; i++)
+                KvpList.RemoveAt(i);
         }
 
         public void RemoveChildrenFromIndex(int index)
@@ -120,13 +121,14 @@ namespace SimpleDatabaseEngine
             var isNewRoot = false;
             
             //left child is old node
-            var newParentKey = Keys[median];
+            var newParentKey = KvpList.Keys[median];
 
             //if node is node rewrite the median key to parent
             //otherwise skip it
             var keysForBigger = IsLeaf
-                ? Keys.GetRange(median, Keys.Count - median)
-                : Keys.GetRange(median + 1, Keys.Count - median - 1);
+                ? GetRangeForSortedList(median, KvpList.Keys.Count - median, KvpList)
+                : GetRangeForSortedList(median + 1, KvpList.Count - median - 1, KvpList);
+
             Node parent;
 
             //root case
@@ -191,6 +193,14 @@ namespace SimpleDatabaseEngine
             if (parent.IsFull())
                 parent.SplitNode(ref root, ref median);
 
+        }
+
+        private SortedList<int,string> GetRangeForSortedList(int from,int count, SortedList<int, string> sortedList)
+        {
+            SortedList<int, string> newList = new SortedList<int, string>();
+            for(int i = 0; i < count; i++)            
+                newList.Add(sortedList.Keys[i + from], sortedList.Values[i + from]);
+            return newList;
         }
     }
 }

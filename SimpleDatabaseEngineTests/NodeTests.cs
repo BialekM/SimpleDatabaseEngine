@@ -17,12 +17,12 @@ namespace SimpleDatabaseEngineTests
             node.TryAddKeyToNode(11);
             node.TryAddKeyToNode(2);
             node.TryAddKeyToNode(21);
-            Assert.AreEqual(2, node.Keys[0]);
-            Assert.AreEqual(3, node.Keys[1]);
-            Assert.AreEqual(5, node.Keys[2]);
-            Assert.AreEqual(10, node.Keys[3]);
-            Assert.AreEqual(11, node.Keys[4]);
-            Assert.AreEqual(21, node.Keys[5]);
+            Assert.AreEqual(2, node.KvpList[0]);
+            Assert.AreEqual(3, node.KvpList[1]);
+            Assert.AreEqual(5, node.KvpList[2]);
+            Assert.AreEqual(10, node.KvpList[3]);
+            Assert.AreEqual(11, node.KvpList[4]);
+            Assert.AreEqual(21, node.KvpList[5]);
         }
 
         [Test]
@@ -35,49 +35,49 @@ namespace SimpleDatabaseEngineTests
         [Test]
         public void AppendChild()
         {
-            var node = new Node { Keys = new List<int>(6) };
-            var children = new List<Node> { new Node { Keys = new List<int> { 7 } } };
+            var node = new Node { KvpList = new List<int>(6) };
+            var children = new List<Node> { new Node { KvpList = new List<int> { 7 } } };
             var keys = new List<int> { 8 };
-            var parent = new Node { Keys = new List<int> { 5 } };
+            var parent = new Node { KvpList = new List<int> { 5 } };
             node = new NodeBuilder().SetChildren(children).SetKeys(keys).SetParent(parent).SetIsLeaf(true).GetNode();
             node.SetParentForChildren();
 
             Assert.AreEqual(true, node.Children[0].IsLeaf);
-            Assert.AreEqual(8, node.Keys[0]);
-            Assert.AreEqual(7, node.Children[0].Keys[0]);
-            Assert.AreEqual(5, node.Parent.Keys[0]);
+            Assert.AreEqual(8, node.KvpList[0]);
+            Assert.AreEqual(7, node.Children[0].KvpList[0]);
+            Assert.AreEqual(5, node.Parent.KvpList[0]);
             Assert.AreEqual(node, node.Children[0].Parent);
         }
 
         [Test]
         public void AppendChildrenInCorrectOrder()
         {
-            var parent = new Node { Keys = new List<int> { 5 } };
-            parent.AddChildInCorrectOrder(new Node { Keys = new List<int> { 11 } });
+            var parent = new Node { KvpList = new List<int> { 5 } };
+            parent.AddChildInCorrectOrder(new Node { KvpList = new List<int> { 11 } });
             parent.TryAddKeyToNode(10);
-            parent.AddChildInCorrectOrder(new Node { Keys = new List<int> { 16 } });
+            parent.AddChildInCorrectOrder(new Node { KvpList = new List<int> { 16 } });
             parent.TryAddKeyToNode(15);
-            parent.AddChildInCorrectOrder(new Node { Keys = new List<int> { 4 } });
+            parent.AddChildInCorrectOrder(new Node { KvpList = new List<int> { 4 } });
             parent.TryAddKeyToNode(25);
-            parent.AddChildInCorrectOrder(new Node { Keys = new List<int> { 26 } });
+            parent.AddChildInCorrectOrder(new Node { KvpList = new List<int> { 26 } });
             parent.TryAddKeyToNode(35);
-            parent.AddChildInCorrectOrder(new Node { Keys = new List<int> { 17 } });
-            parent.AddChildInCorrectOrder(new Node { Keys = new List<int> { 36 } });
+            parent.AddChildInCorrectOrder(new Node { KvpList = new List<int> { 17 } });
+            parent.AddChildInCorrectOrder(new Node { KvpList = new List<int> { 36 } });
 
-            Assert.AreEqual(4,parent.Children[0].Keys[0]);
-            Assert.AreEqual(11, parent.Children[1].Keys[0]);
-            Assert.AreEqual(16, parent.Children[2].Keys[0]);
-            Assert.AreEqual(17, parent.Children[3].Keys[0]);
-            Assert.AreEqual(26, parent.Children[4].Keys[0]);
-            Assert.AreEqual(36, parent.Children[5].Keys[0]);
+            Assert.AreEqual(4,parent.Children[0].KvpList[0]);
+            Assert.AreEqual(11, parent.Children[1].KvpList[0]);
+            Assert.AreEqual(16, parent.Children[2].KvpList[0]);
+            Assert.AreEqual(17, parent.Children[3].KvpList[0]);
+            Assert.AreEqual(26, parent.Children[4].KvpList[0]);
+            Assert.AreEqual(36, parent.Children[5].KvpList[0]);
         }
 
         [Test]
         public void ReplaceValueInParent()
         {
-            var node = new Node {Parent = new Node {Keys = new List<int> {10}}};
+            var node = new Node {Parent = new Node {KvpList = new List<int> {10}}};
             node.ReplaceValueInParent(10,11);
-            Assert.AreEqual(11,node.Parent.Keys[0]);
+            Assert.AreEqual(11,node.Parent.KvpList[0]);
         }
     }
 }

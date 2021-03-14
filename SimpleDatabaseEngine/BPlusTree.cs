@@ -21,7 +21,7 @@ namespace SimpleDatabaseEngine
         public bool TryAddKeyToTree(int key)
         {
             var leaf = FindLeafToAdd(key, Root);
-            if (leaf.Keys.Contains(key))
+            if (leaf.KvpList.Contains(key))
                 return false;
 
             leaf.TryAddKeyToNode(key);
@@ -35,22 +35,22 @@ namespace SimpleDatabaseEngine
             if (node.IsLeaf)
                 return node;
 
-            for (var i = 0; i < node.Keys.Count; i++)
+            for (var i = 0; i < node.KvpList.Count; i++)
             {
-                if (key <= node.Keys[i] && !node.IsLeaf || i == node.Children.Count)
+                if (key <= node.KvpList[i] && !node.IsLeaf || i == node.Children.Count)
                     return FindLeafToAdd(key, node.Children[i]);
             }
-            return key > node.Keys[^1] ? FindLeafToAdd(key, node.Children[^1]) : node;
+            return key > node.KvpList[^1] ? FindLeafToAdd(key, node.Children[^1]) : node;
         }
 
         public Node FindLeafWithKey(int key, Node node)
         {
             if (node.IsLeaf)
-                return node.Keys.BinarySearch(key) == -1 ? null : node;
+                return node.KvpList.BinarySearch(key) == -1 ? null : node;
 
-            for (var i = 0; i < node.Keys.Count; i++)
+            for (var i = 0; i < node.KvpList.Count; i++)
             {
-                if (key < node.Keys[i] && !node.IsLeaf || i == node.Children.Count)
+                if (key < node.KvpList[i] && !node.IsLeaf || i == node.Children.Count)
                     return FindLeafWithKey(key, node.Children[i]);
             }
 
@@ -61,7 +61,7 @@ namespace SimpleDatabaseEngine
         {
             if (node == Root)
             {
-                if (node.Keys.Count == 0)
+                if (node.KvpList.Count == 0)
                     Root = node.Children[0];
 
                 return;
@@ -70,40 +70,40 @@ namespace SimpleDatabaseEngine
             var nextSibling = node.FindNextNode();
             var previousSibling = node.FindPreviousNode();
 
-            if (node.Parent != null && node.Parent.Keys.Count == node.Parent.Children.Count - 1 && node.Keys.Count > 0)
+            if (node.Parent != null && node.Parent.KvpList.Count == node.Parent.Children.Count - 1 && node.KvpList.Count > 0)
             {
                 if (node != Root)
                     BalanceTree(node.Parent);
                 return;
             }
 
-            switch (node.Keys.Count < _minNumberOfKey)
+            switch (node.KvpList.Count < _minNumberOfKey)
             {
-                case true when nextSibling != null && nextSibling.Keys.Count > _minNumberOfKey:
+                case true when nextSibling != null && nextSibling.KvpList.Count > _minNumberOfKey:
                 {
-                    var keyToMove = nextSibling.Keys[0];
+                    var keyToMove = nextSibling.KvpList[0];
                     var childToMove = nextSibling.Children[0];
-                    node.Parent.Keys.Add(nextSibling.Keys[0]);
-                    node.TryAddKeyToNode(node.Parent.Keys[0]);
-                    node.Parent.Keys.Remove(node.Parent.Keys[0]);
+                    node.Parent.KvpList.Add(nextSibling.KvpList[0]);
+                    node.TryAddKeyToNode(node.Parent.KvpList[0]);
+                    node.Parent.KvpList.Remove(node.Parent.KvpList[0]);
                     node.AddChildInCorrectOrder(childToMove);
                     childToMove.Parent = node;
 
-                    nextSibling.Keys.Remove(keyToMove);
+                    nextSibling.KvpList.Remove(keyToMove);
                     nextSibling.Children.Remove(childToMove);
                     break;
                 }
-                case true when previousSibling != null && previousSibling.Keys.Count > _minNumberOfKey:
+                case true when previousSibling != null && previousSibling.KvpList.Count > _minNumberOfKey:
                 {
-                    var keyToMove = previousSibling.Keys[^1];
+                    var keyToMove = previousSibling.KvpList[^1];
                     var childToMove = previousSibling.Children[^1];
-                    node.Parent.TryAddKeyToNode(previousSibling.Keys[^1]);
-                    node.Keys.Add(node.Parent.Keys[^1]);
-                    node.Parent.Keys.Remove(node.Parent.Keys[^1]);
+                    node.Parent.TryAddKeyToNode(previousSibling.KvpList[^1]);
+                    node.KvpList.Add(node.Parent.KvpList[^1]);
+                    node.Parent.KvpList.Remove(node.Parent.KvpList[^1]);
                     node.AddChildInCorrectOrder(childToMove);
                     childToMove.Parent = node;
 
-                    previousSibling.Keys.Remove(keyToMove);
+                    previousSibling.KvpList.Remove(keyToMove);
                     previousSibling.Children.Remove(childToMove);
                     break;
                 }
@@ -116,17 +116,17 @@ namespace SimpleDatabaseEngine
                     var nodeToMergeNextSibling = nodeToMerge.FindNextNode();
 
                     nodeToMerge.Children.AddRange(nodeToMergeNextSibling.Children);
-                    nodeToMerge.Keys.AddRange(nodeToMergeNextSibling.Keys);
+                    nodeToMerge.KvpList.AddRange(nodeToMergeNextSibling.KvpList);
                     nodeToMerge.Parent.Children.Remove(nodeToMergeNextSibling);
 
-                    if (nodeToMerge.Keys.Count < nodeToMerge.Children.Count - 1)
+                    if (nodeToMerge.KvpList.Count < nodeToMerge.Children.Count - 1)
                     {
-                        if (nodeToMerge.Parent.Keys.Count > 0)
+                        if (nodeToMerge.Parent.KvpList.Count > 0)
                         {
                             var parentKeyIndex = nodeToMerge.FindIndexOfNode();
-                            var parentKey = nodeToMerge.Parent.Keys[parentKeyIndex];
+                            var parentKey = nodeToMerge.Parent.KvpList[parentKeyIndex];
                             nodeToMerge.TryAddKeyToNode(parentKey);
-                            nodeToMerge.Parent.Keys.RemoveAt(parentKeyIndex);
+                            nodeToMerge.Parent.KvpList.RemoveAt(parentKeyIndex);
                         }
 
                         nodeToMerge.Parent.Children.Remove(nodeToMergeNextSibling);
@@ -147,36 +147,36 @@ namespace SimpleDatabaseEngine
             var leaf = FindLeafWithKey(key, Root);
             if (leaf == Root)
             {
-                leaf.Keys.Remove(key);
+                leaf.KvpList.Remove(key);
                 return;
             }
             //check if leaf is edge left
             var edgeLeftCase = (leaf.Parent.Children[0] == leaf);
 
-            var firstChildKey = leaf.Parent.Children[0].Keys[0];
-            leaf.Keys.Remove(key);
+            var firstChildKey = leaf.Parent.Children[0].KvpList[0];
+            leaf.KvpList.Remove(key);
 
-            if (leaf.Keys.Count >= _minNumberOfKey)
+            if (leaf.KvpList.Count >= _minNumberOfKey)
             {
-                leaf.ReplaceValueInParent(key, leaf.Keys[0]);
+                leaf.ReplaceValueInParent(key, leaf.KvpList[0]);
                 return;
             }
 
-            switch (leaf.Keys.Count < _minNumberOfKey)
+            switch (leaf.KvpList.Count < _minNumberOfKey)
             {
-                case true when leaf.NextLeaf != null && leaf.NextLeaf.Keys.Count > _minNumberOfKey && leaf.NextLeaf.Parent == leaf.Parent:
+                case true when leaf.NextLeaf != null && leaf.NextLeaf.KvpList.Count > _minNumberOfKey && leaf.NextLeaf.Parent == leaf.Parent:
                 {
-                    var keyToMove = leaf.NextLeaf.Keys[0];
-                    leaf.Keys.Add(leaf.NextLeaf.Keys[0]);
-                    leaf.NextLeaf.Keys.Remove(keyToMove);
-                    leaf.ReplaceValueInParent(keyToMove, leaf.NextLeaf.Keys[0]);
+                    var keyToMove = leaf.NextLeaf.KvpList[0];
+                    leaf.KvpList.Add(leaf.NextLeaf.KvpList[0]);
+                    leaf.NextLeaf.KvpList.Remove(keyToMove);
+                    leaf.ReplaceValueInParent(keyToMove, leaf.NextLeaf.KvpList[0]);
                     break;
                 }
-                case true when leaf.PreviousLeaf != null && leaf.PreviousLeaf.Keys.Count > _minNumberOfKey && leaf.PreviousLeaf.Parent == leaf.Parent:
+                case true when leaf.PreviousLeaf != null && leaf.PreviousLeaf.KvpList.Count > _minNumberOfKey && leaf.PreviousLeaf.Parent == leaf.Parent:
                 {
-                    var keyToMove = leaf.PreviousLeaf.Keys[^1];
-                    leaf.Keys.Add(leaf.PreviousLeaf.Keys[^1]);
-                    leaf.PreviousLeaf.Keys.Remove(keyToMove);
+                    var keyToMove = leaf.PreviousLeaf.KvpList[^1];
+                    leaf.KvpList.Add(leaf.PreviousLeaf.KvpList[^1]);
+                    leaf.PreviousLeaf.KvpList.Remove(keyToMove);
                     leaf.ReplaceValueInParent(key, keyToMove);
                     break;
                 }
@@ -188,15 +188,15 @@ namespace SimpleDatabaseEngine
                         nodeToMerge = leaf.PreviousLeaf;
 
                     nodeToMerge.Children.AddRange(nodeToMerge.NextLeaf.Children);
-                    nodeToMerge.Keys.AddRange(nodeToMerge.NextLeaf.Keys);
+                    nodeToMerge.KvpList.AddRange(nodeToMerge.NextLeaf.KvpList);
 
                     //nodeToMerge.DeleteValueInParent(key);
 
-                    if (nodeToMerge?.NextLeaf  != null && nodeToMerge?.NextLeaf?.Keys.Count != 0 && edgeLeftCase)
-                        nodeToMerge.Parent.Keys.Remove(nodeToMerge.NextLeaf.Keys[0]);
+                    if (nodeToMerge?.NextLeaf  != null && nodeToMerge?.NextLeaf?.KvpList.Count != 0 && edgeLeftCase)
+                        nodeToMerge.Parent.KvpList.Remove(nodeToMerge.NextLeaf.KvpList[0]);
 
                     if (!edgeLeftCase)
-                        nodeToMerge.Parent.Keys.Remove(key);
+                        nodeToMerge.Parent.KvpList.Remove(key);
 
                     var nodeToDelete = nodeToMerge.NextLeaf;
                     nodeToMerge.NextLeaf = nodeToMerge.NextLeaf.NextLeaf;
@@ -206,7 +206,7 @@ namespace SimpleDatabaseEngine
 
                     nodeToMerge.Parent.Children.Remove(nodeToDelete);
 
-                    nodeToMerge.ReplaceValueInParent(firstChildKey, nodeToMerge.Parent.Children[0].Keys[0]);
+                    nodeToMerge.ReplaceValueInParent(firstChildKey, nodeToMerge.Parent.Children[0].KvpList[0]);
                     if (nodeToMerge != Root)
                         BalanceTree(nodeToMerge.Parent);
                     break;
