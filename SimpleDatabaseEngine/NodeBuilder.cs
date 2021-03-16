@@ -10,9 +10,9 @@ namespace SimpleDatabaseEngine
             _node = new Node();
         }
 
-        public NodeBuilder SetKeys(SortedList<int, string> KvpList)
+        public NodeBuilder SetKeys(SortedDictionary<int, string> KvpList)
         {
-            _node.KvpList = KvpList;
+            _node.KeyValueDictionary = KvpList;
             return this;
         }
 

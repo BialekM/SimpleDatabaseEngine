@@ -6,7 +6,7 @@ namespace SimpleDatabaseEngine
     public class Node
     {
         private const int TreeOrder = 3;
-        public SortedList<int, string> KvpList = new SortedList<int, string>();
+        public SortedDictionary<int, string> KeyValueDictionary = new SortedDictionary<int, string>();
         public Node Parent { get; set; }
         public bool IsLeaf { get; set; } = true;
         public List<Node> Children { get; set; } = new List<Node>();
@@ -14,38 +14,38 @@ namespace SimpleDatabaseEngine
         public Node PreviousLeaf { get; set; }
 
         //Add key in correct order + null check
-        public bool TryAddKeyToNode(int key)
-        {
-            if (KvpList.Keys.Contains(key))
-                return false;
-            if (KvpList.Any() && key < KvpList.Keys[0])
-            {
-                KvpList.Keys.Insert(0, key);
-                return true;
-            }
-            for (var i = 0; i < KvpList.Count - 1; ++i)
-            {
-                if (key > KvpList.Keys[i] && key < KvpList.Keys[i + 1])
-                {
-                    KvpList.Keys.Insert(i + 1, key);
-                    return true;
-                }
-            }
-            KvpList.Keys.Add(key);
-            return true;
-        }
+        //public bool TryAddKeyToNode(int key)
+        //{
+        //    if (KvpList.Keys.Contains(key))
+        //        return false;
+        //    if (KvpList.Any() && key < KvpList.Keys[0])
+        //    {
+        //        KvpList.Keys.Insert(0, key);
+        //        return true;
+        //    }
+        //    for (var i = 0; i < KvpList.Count - 1; ++i)
+        //    {
+        //        if (key > KvpList.Keys[i] && key < KvpList.Keys[i + 1])
+        //        {
+        //            KvpList.Keys.Insert(i + 1, key);
+        //            return true;
+        //        }
+        //    }
+        //    KvpList.Keys.Add(key);
+        //    return true;
+        //}
 
         public void AddChildInCorrectOrder(Node child)
         {
-            if (KvpList.Any() && child.KvpList.Keys[0] < KvpList.Keys[0])
+            if (KeyValueDictionary.Any() && child.KeyValueDictionary.ElementAt(0).Key < KeyValueDictionary.ElementAt(0).Key)
             {
                 Children.Insert(0, child);
                 return;
             }
 
-            for (var i = 0; i < KvpList.Count - 1; ++i)
+            for (var i = 0; i < KeyValueDictionary.Count - 1; ++i)
             {
-                if (child.KvpList.Keys[0] >= KvpList.Keys[i] && child.KvpList.Keys[^1] < KvpList.Keys[i + 1])
+                if (child.KeyValueDictionary.ElementAt(0).Key >= KeyValueDictionary.ElementAt(i).Key && child.KeyValueDictionary.Last().Key < KeyValueDictionary.ElementAt(i +1).Key)
                 {
                     Children.Insert(i + 1, child);
                     return;
@@ -56,9 +56,10 @@ namespace SimpleDatabaseEngine
 
         public void ReplaceValueInParent(int key, int newKey)
         {
-            if (Parent != null && Parent.KvpList.Keys.Contains(key))
+            if (Parent != null && Parent.KeyValueDictionary.Keys.Contains(key))
             {
-                Parent.KvpList.Keys[Parent.KvpList.Keys.IndexOf(key)] = newKey;
+                Parent.KeyValueDictionary.Remove(key);
+                Parent.KeyValueDictionary.Add(newKey, null);
                 return;
             }
 
@@ -67,9 +68,9 @@ namespace SimpleDatabaseEngine
 
         public void DeleteValueInParent(int key)
         {
-            if (Parent != null && Parent.KvpList.Keys.Contains(key))
+            if (Parent != null && Parent.KeyValueDictionary.Keys.Contains(key))
             {
-                Parent.KvpList.Remove(key);
+                Parent.KeyValueDictionary.Remove(key);
                 return;
             }
 
@@ -78,13 +79,15 @@ namespace SimpleDatabaseEngine
 
         public bool IsFull()
         {
-            return KvpList.Count >= TreeOrder;
+            return KeyValueDictionary.Count >= TreeOrder;
         }
 
         public void RemoveKeysFromIndex(int index)
         {
-            for(int i = index; i < KvpList.Count - index; i++)
-                KvpList.RemoveAt(i);
+            var keyFromIndex = KeyValueDictionary.ElementAt(index).Key;
+            var listOfKeysToDelete = KeyValueDictionary.Keys.Where(k => k >= keyFromIndex).ToList();
+            foreach(var keyToDelete in listOfKeysToDelete)
+                KeyValueDictionary.Remove(keyToDelete);
         }
 
         public void RemoveChildrenFromIndex(int index)
@@ -119,15 +122,15 @@ namespace SimpleDatabaseEngine
         {
             var listOfChildrenForBigger = new List<Node>();
             var isNewRoot = false;
-            
+
             //left child is old node
-            var newParentKey = KvpList.Keys[median];
+            var newParentKey = KeyValueDictionary.ElementAt(median).Key;
 
             //if node is node rewrite the median key to parent
             //otherwise skip it
             var keysForBigger = IsLeaf
-                ? GetRangeForSortedList(median, KvpList.Keys.Count - median, KvpList)
-                : GetRangeForSortedList(median + 1, KvpList.Count - median - 1, KvpList);
+                ? GetRangeForSortedDictionary(median, KeyValueDictionary.Keys.Count - median, KeyValueDictionary)
+                : GetRangeForSortedDictionary(median + 1, KeyValueDictionary.Count - median - 1, KeyValueDictionary);
 
             Node parent;
 
@@ -145,7 +148,8 @@ namespace SimpleDatabaseEngine
 
 
             //Add key from median to parent
-            parent.TryAddKeyToNode(newParentKey);
+            parent.KeyValueDictionary.Add(newParentKey, null);
+            //parent.TryAddKeyToNode(newParentKey);
             
             //Remove Keys from left node
             RemoveKeysFromIndex(median);
@@ -195,12 +199,17 @@ namespace SimpleDatabaseEngine
 
         }
 
-        private SortedList<int,string> GetRangeForSortedList(int from,int count, SortedList<int, string> sortedList)
+        private SortedDictionary<int,string> GetRangeForSortedDictionary(int from,int count, SortedDictionary<int, string> sortedDictionary)
         {
-            SortedList<int, string> newList = new SortedList<int, string>();
-            for(int i = 0; i < count; i++)            
-                newList.Add(sortedList.Keys[i + from], sortedList.Values[i + from]);
-            return newList;
+            var newDictionary = new SortedDictionary<int, string>();
+            var minkey = sortedDictionary.ElementAt(from).Key;
+            var maxKey = sortedDictionary.ElementAt(from + count - 1).Key;
+            var kvpList = sortedDictionary.Where(e => e.Key >= minkey && e.Key <= maxKey).ToList();
+            foreach(var kvp in kvpList)
+            {
+                newDictionary.Add(kvp.Key, kvp.Value);
+            }
+            return newDictionary;
         }
     }
 }

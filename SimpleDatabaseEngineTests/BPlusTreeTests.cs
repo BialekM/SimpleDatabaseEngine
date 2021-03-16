@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Linq;
 using NUnit.Framework;
 using SimpleDatabaseEngine;
 
@@ -13,8 +13,8 @@ namespace SimpleDatabaseEngineTests
             tree.TryAddKeyToTree(3);
 
             Assert.AreEqual(true, tree.Root.IsLeaf);
-            Assert.AreEqual(3, tree.Root.KvpList[0]);
-            Assert.AreEqual(5, tree.Root.KvpList[1]);
+            Assert.AreEqual(3, tree.Root.KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(5, tree.Root.KeyValueDictionary.ElementAt(1).Key);
             Assert.AreEqual(null, tree.Root.NextLeaf);
             Assert.AreEqual(null, tree.Root.PreviousLeaf);
             Assert.AreEqual(null, tree.Root.Parent);
@@ -23,15 +23,15 @@ namespace SimpleDatabaseEngineTests
         [Test]
         public void SingleSplitRoot()
         {
-            var tree = new BPlusTree( 5);
+            var tree = new BPlusTree(5);
             tree.TryAddKeyToTree(3);
             tree.TryAddKeyToTree(10);
 
             Assert.AreEqual(false, tree.Root.IsLeaf);
             Assert.AreEqual(2, tree.Root.Children.Count);
-            Assert.AreEqual(3, tree.Root.Children[0].KvpList[0]);
-            Assert.AreEqual(5, tree.Root.Children[1].KvpList[0]);
-            Assert.AreEqual(10, tree.Root.Children[1].KvpList[1]);
+            Assert.AreEqual(3, tree.Root.Children[0].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(5, tree.Root.Children[1].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(10, tree.Root.Children[1].KeyValueDictionary.ElementAt(1).Key);
             Assert.AreEqual(tree.Root, tree.Root.Children[0].Parent);
             Assert.AreEqual(tree.Root, tree.Root.Children[1].Parent);
             Assert.AreEqual(null, tree.Root.Children[0].PreviousLeaf);
@@ -51,15 +51,15 @@ namespace SimpleDatabaseEngineTests
 
             Assert.AreEqual(false, tree.Root.IsLeaf);
             Assert.AreEqual(2, tree.Root.Children.Count);
-            Assert.AreEqual(5, tree.Root.Children[0].KvpList[0]);
-            Assert.AreEqual(15, tree.Root.Children[1].KvpList[0]);
+            Assert.AreEqual(5, tree.Root.Children[0].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(15, tree.Root.Children[1].KeyValueDictionary.ElementAt(0).Key);
             Assert.AreEqual(false, tree.Root.Children[0].IsLeaf);
             Assert.AreEqual(false, tree.Root.Children[1].IsLeaf);
-            Assert.AreEqual(3, tree.Root.Children[0].Children[0].KvpList[0]);
-            Assert.AreEqual(3, tree.Root.Children[0].Children[0].KvpList[0]);
-            Assert.AreEqual(10, tree.Root.Children[1].Children[0].KvpList[0]);
-            Assert.AreEqual(15, tree.Root.Children[1].Children[1].KvpList[0]);
-            Assert.AreEqual(20, tree.Root.Children[1].Children[1].KvpList[1]);
+            Assert.AreEqual(3, tree.Root.Children[0].Children[0].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(3, tree.Root.Children[0].Children[0].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(10, tree.Root.Children[1].Children[0].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(15, tree.Root.Children[1].Children[1].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(20, tree.Root.Children[1].Children[1].KeyValueDictionary.ElementAt(1).Key);
             Assert.AreEqual(null, tree.Root.Children[0].Children[0].PreviousLeaf);
             Assert.AreEqual(true, tree.Root.Children[0].Children[0].IsLeaf);
             Assert.AreEqual(true, tree.Root.Children[0].Children[1].IsLeaf);
@@ -83,7 +83,7 @@ namespace SimpleDatabaseEngineTests
         [Test]
         public void FindLeafWithKey()
         {
-            var tree = new BPlusTree( 5);
+            var tree = new BPlusTree(5);
             tree.TryAddKeyToTree(3);
             tree.TryAddKeyToTree(10);
             tree.TryAddKeyToTree(15);
@@ -105,8 +105,8 @@ namespace SimpleDatabaseEngineTests
             tree.TryAddKeyToTree(12);
             tree.TryAddKeyToTree(14);
             var foundNode = tree.FindLeafToAdd(25, tree.Root);
-            Assert.AreEqual(15, foundNode.KvpList[0]);
-            Assert.AreEqual(20, foundNode.KvpList[1]);
+            Assert.AreEqual(15, foundNode.KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(20, foundNode.KeyValueDictionary.ElementAt(1).Key);
         }
 
         [Test]
@@ -119,13 +119,13 @@ namespace SimpleDatabaseEngineTests
             tree.TryAddKeyToTree(25);
             tree.DeleteKey(10);
 
-            Assert.AreEqual(2, tree.Root.KvpList.Count);
-            Assert.AreEqual(15, tree.Root.KvpList[0]);
-            Assert.AreEqual(20, tree.Root.KvpList[1]);
-            Assert.AreEqual(5, tree.Root.Children[0].KvpList[0]);
-            Assert.AreEqual(15, tree.Root.Children[1].KvpList[0]);
-            Assert.AreEqual(20, tree.Root.Children[2].KvpList[0]);
-            Assert.AreEqual(25, tree.Root.Children[2].KvpList[1]);
+            Assert.AreEqual(2, tree.Root.KeyValueDictionary.Count);
+            Assert.AreEqual(15, tree.Root.KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(20, tree.Root.KeyValueDictionary.ElementAt(1).Key);
+            Assert.AreEqual(5, tree.Root.Children[0].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(15, tree.Root.Children[1].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(20, tree.Root.Children[2].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(25, tree.Root.Children[2].KeyValueDictionary.ElementAt(1).Key);
             Assert.AreEqual(null, tree.Root.Children[0].PreviousLeaf);
             Assert.AreEqual(tree.Root.Children[1], tree.Root.Children[0].NextLeaf);
             Assert.AreEqual(tree.Root.Children[0], tree.Root.Children[1].PreviousLeaf);
@@ -147,14 +147,14 @@ namespace SimpleDatabaseEngineTests
             tree.DeleteKey(5);
             tree.DeleteKey(7);
 
-            Assert.AreEqual(15, tree.Root.KvpList[0]);
-            Assert.AreEqual(10, tree.Root.Children[0].KvpList[0]);
-            Assert.AreEqual(20, tree.Root.Children[1].KvpList[0]);
-            Assert.AreEqual(6, tree.Root.Children[0].Children[0].KvpList[0]);
-            Assert.AreEqual(10, tree.Root.Children[0].Children[1].KvpList[0]);
-            Assert.AreEqual(15, tree.Root.Children[1].Children[0].KvpList[0]);
-            Assert.AreEqual(20, tree.Root.Children[1].Children[1].KvpList[0]);
-            Assert.AreEqual(25, tree.Root.Children[1].Children[1].KvpList[1]);
+            Assert.AreEqual(15, tree.Root.KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(10, tree.Root.Children[0].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(20, tree.Root.Children[1].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(6, tree.Root.Children[0].Children[0].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(10, tree.Root.Children[0].Children[1].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(15, tree.Root.Children[1].Children[0].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(20, tree.Root.Children[1].Children[1].KeyValueDictionary.ElementAt(0).Key);
+            Assert.AreEqual(25, tree.Root.Children[1].Children[1].KeyValueDictionary.ElementAt(1).Key);
         }
 
         [Test]
@@ -186,7 +186,7 @@ namespace SimpleDatabaseEngineTests
             tree.DeleteKey(15);
             tree.DeleteKey(10);
             tree.DeleteKey(5);
-            Assert.AreEqual(0, tree.Root.KvpList.Count);
+            Assert.AreEqual(0, tree.Root.KeyValueDictionary.Count);
             Assert.AreEqual(0, tree.Root.Children.Count);
         }
     }

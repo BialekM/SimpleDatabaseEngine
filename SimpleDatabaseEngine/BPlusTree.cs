@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace SimpleDatabaseEngine
 {
@@ -15,16 +16,16 @@ namespace SimpleDatabaseEngine
             _median = (int)Math.Ceiling((float)treeOrder / 2) - 1;
             _minNumberOfKey = _median;
             Root = new Node();
-            Root.TryAddKeyToNode(key);
+            Root.KeyValueDictionary.Add(key, null);
         }
 
         public bool TryAddKeyToTree(int key)
         {
             var leaf = FindLeafToAdd(key, Root);
-            if (leaf.KvpList.Contains(key))
+            if (leaf.KeyValueDictionary.ContainsKey(key))
                 return false;
 
-            leaf.TryAddKeyToNode(key);
+            leaf.KeyValueDictionary.Add(key, null);
             if (leaf.IsFull())
                 leaf.SplitNode(ref Root, ref _median);
             return true;
@@ -35,22 +36,22 @@ namespace SimpleDatabaseEngine
             if (node.IsLeaf)
                 return node;
 
-            for (var i = 0; i < node.KvpList.Count; i++)
-            {
-                if (key <= node.KvpList[i] && !node.IsLeaf || i == node.Children.Count)
+            for (var i = 0; i < node.KeyValueDictionary.Count; i++)
+            {               
+                if (key <= node.KeyValueDictionary.ElementAt(i).Key && !node.IsLeaf || i == node.Children.Count)
                     return FindLeafToAdd(key, node.Children[i]);
             }
-            return key > node.KvpList[^1] ? FindLeafToAdd(key, node.Children[^1]) : node;
+            return key > node.KeyValueDictionary.Last().Key ? FindLeafToAdd(key, node.Children[^1]) : node;
         }
 
         public Node FindLeafWithKey(int key, Node node)
         {
             if (node.IsLeaf)
-                return node.KvpList.BinarySearch(key) == -1 ? null : node;
+                return node.KeyValueDictionary.ContainsKey(key) ? node : null;
 
-            for (var i = 0; i < node.KvpList.Count; i++)
+            for (var i = 0; i < node.KeyValueDictionary.Count; i++)
             {
-                if (key < node.KvpList[i] && !node.IsLeaf || i == node.Children.Count)
+                if (key < node.KeyValueDictionary.ElementAt(i).Key && !node.IsLeaf || i == node.Children.Count)
                     return FindLeafWithKey(key, node.Children[i]);
             }
 
@@ -61,7 +62,7 @@ namespace SimpleDatabaseEngine
         {
             if (node == Root)
             {
-                if (node.KvpList.Count == 0)
+                if (node.KeyValueDictionary.Count == 0)
                     Root = node.Children[0];
 
                 return;
@@ -70,75 +71,77 @@ namespace SimpleDatabaseEngine
             var nextSibling = node.FindNextNode();
             var previousSibling = node.FindPreviousNode();
 
-            if (node.Parent != null && node.Parent.KvpList.Count == node.Parent.Children.Count - 1 && node.KvpList.Count > 0)
+            if (node.Parent != null && node.Parent.KeyValueDictionary.Count == node.Parent.Children.Count - 1 && node.KeyValueDictionary.Count > 0)
             {
                 if (node != Root)
                     BalanceTree(node.Parent);
                 return;
             }
 
-            switch (node.KvpList.Count < _minNumberOfKey)
+            switch (node.KeyValueDictionary.Count < _minNumberOfKey)
             {
-                case true when nextSibling != null && nextSibling.KvpList.Count > _minNumberOfKey:
-                {
-                    var keyToMove = nextSibling.KvpList[0];
-                    var childToMove = nextSibling.Children[0];
-                    node.Parent.KvpList.Add(nextSibling.KvpList[0]);
-                    node.TryAddKeyToNode(node.Parent.KvpList[0]);
-                    node.Parent.KvpList.Remove(node.Parent.KvpList[0]);
-                    node.AddChildInCorrectOrder(childToMove);
-                    childToMove.Parent = node;
-
-                    nextSibling.KvpList.Remove(keyToMove);
-                    nextSibling.Children.Remove(childToMove);
-                    break;
-                }
-                case true when previousSibling != null && previousSibling.KvpList.Count > _minNumberOfKey:
-                {
-                    var keyToMove = previousSibling.KvpList[^1];
-                    var childToMove = previousSibling.Children[^1];
-                    node.Parent.TryAddKeyToNode(previousSibling.KvpList[^1]);
-                    node.KvpList.Add(node.Parent.KvpList[^1]);
-                    node.Parent.KvpList.Remove(node.Parent.KvpList[^1]);
-                    node.AddChildInCorrectOrder(childToMove);
-                    childToMove.Parent = node;
-
-                    previousSibling.KvpList.Remove(keyToMove);
-                    previousSibling.Children.Remove(childToMove);
-                    break;
-                }
-                default:
-                {
-                    var nodeToMerge = node;
-                    if (nextSibling?.Parent != node.Parent) //if right sibling does not exist
-                        nodeToMerge = previousSibling;
-
-                    var nodeToMergeNextSibling = nodeToMerge.FindNextNode();
-
-                    nodeToMerge.Children.AddRange(nodeToMergeNextSibling.Children);
-                    nodeToMerge.KvpList.AddRange(nodeToMergeNextSibling.KvpList);
-                    nodeToMerge.Parent.Children.Remove(nodeToMergeNextSibling);
-
-                    if (nodeToMerge.KvpList.Count < nodeToMerge.Children.Count - 1)
+                case true when nextSibling != null && nextSibling.KeyValueDictionary.Count > _minNumberOfKey:
                     {
-                        if (nodeToMerge.Parent.KvpList.Count > 0)
+                        var keyToMove = nextSibling.KeyValueDictionary.ElementAt(0).Key;
+                        var childToMove = nextSibling.Children[0];
+                        node.Parent.KeyValueDictionary.Add(nextSibling.KeyValueDictionary.ElementAt(0).Key, null);
+                        node.KeyValueDictionary.Add(node.Parent.KeyValueDictionary.ElementAt(0).Key, null);
+                        node.Parent.KeyValueDictionary.Remove(node.Parent.KeyValueDictionary.ElementAt(0).Key);
+                        node.AddChildInCorrectOrder(childToMove);
+                        childToMove.Parent = node;
+
+                        nextSibling.KeyValueDictionary.Remove(keyToMove);
+                        nextSibling.Children.Remove(childToMove);
+                        break;
+                    }
+                case true when previousSibling != null && previousSibling.KeyValueDictionary.Count > _minNumberOfKey:
+                    {
+                        var keyToMove = previousSibling.KeyValueDictionary.Last().Key;
+                        var childToMove = previousSibling.Children[^1];
+                        node.Parent.KeyValueDictionary.Add(previousSibling.KeyValueDictionary.Last().Key, null);
+                        node.KeyValueDictionary.Add(node.Parent.KeyValueDictionary.Last().Key, node.Parent.KeyValueDictionary.Last().Value);
+                        node.Parent.KeyValueDictionary.Remove(node.Parent.KeyValueDictionary.Last().Key);
+                        node.AddChildInCorrectOrder(childToMove);
+                        childToMove.Parent = node;
+
+                        previousSibling.KeyValueDictionary.Remove(keyToMove);
+                        previousSibling.Children.Remove(childToMove);
+                        break;
+                    }
+                default:
+                    {
+                        var nodeToMerge = node;
+                        if (nextSibling?.Parent != node.Parent) //if right sibling does not exist
+                            nodeToMerge = previousSibling;
+
+                        var nodeToMergeNextSibling = nodeToMerge.FindNextNode();
+
+                        nodeToMerge.Children.AddRange(nodeToMergeNextSibling.Children);
+                        foreach(var kvp in nodeToMergeNextSibling.KeyValueDictionary)
+                            nodeToMerge.KeyValueDictionary.Add(kvp.Key, kvp.Value);
+                        //nodeToMerge.KvpList.AddRange(nodeToMergeNextSibling.KvpList);
+                        nodeToMerge.Parent.Children.Remove(nodeToMergeNextSibling);
+
+                        if (nodeToMerge.KeyValueDictionary.Count < nodeToMerge.Children.Count - 1)
                         {
-                            var parentKeyIndex = nodeToMerge.FindIndexOfNode();
-                            var parentKey = nodeToMerge.Parent.KvpList[parentKeyIndex];
-                            nodeToMerge.TryAddKeyToNode(parentKey);
-                            nodeToMerge.Parent.KvpList.RemoveAt(parentKeyIndex);
+                            if (nodeToMerge.Parent.KeyValueDictionary.Count > 0)
+                            {
+                                var parentKeyIndex = nodeToMerge.FindIndexOfNode();
+                                var parentKey = nodeToMerge.Parent.KeyValueDictionary.ElementAt(parentKeyIndex).Key;
+                                nodeToMerge.KeyValueDictionary.Add(parentKey, null);                                
+                                nodeToMerge.Parent.KeyValueDictionary.Remove(nodeToMerge.Parent.KeyValueDictionary.ElementAt(parentKeyIndex).Key);
+                            }
+
+                            nodeToMerge.Parent.Children.Remove(nodeToMergeNextSibling);
                         }
 
-                        nodeToMerge.Parent.Children.Remove(nodeToMergeNextSibling);
+                        foreach (var child in nodeToMerge.Children)
+                            child.Parent = nodeToMerge;
+
+                        if (nodeToMerge != Root)
+                            BalanceTree(nodeToMerge.Parent);
+                        break;
                     }
-
-                    foreach (var child in nodeToMerge.Children)
-                        child.Parent = nodeToMerge;
-
-                    if (nodeToMerge != Root)
-                        BalanceTree(nodeToMerge.Parent);
-                    break;
-                }
             }
         }
 
@@ -147,70 +150,72 @@ namespace SimpleDatabaseEngine
             var leaf = FindLeafWithKey(key, Root);
             if (leaf == Root)
             {
-                leaf.KvpList.Remove(key);
+                leaf.KeyValueDictionary.Remove(key);
                 return;
             }
             //check if leaf is edge left
             var edgeLeftCase = (leaf.Parent.Children[0] == leaf);
 
-            var firstChildKey = leaf.Parent.Children[0].KvpList[0];
-            leaf.KvpList.Remove(key);
+            var firstChildKey = leaf.Parent.Children[0].KeyValueDictionary.ElementAt(0).Key;
+            leaf.KeyValueDictionary.Remove(key);
 
-            if (leaf.KvpList.Count >= _minNumberOfKey)
+            if (leaf.KeyValueDictionary.Count >= _minNumberOfKey)
             {
-                leaf.ReplaceValueInParent(key, leaf.KvpList[0]);
+                leaf.ReplaceValueInParent(key, leaf.KeyValueDictionary.ElementAt(0).Key);
                 return;
             }
 
-            switch (leaf.KvpList.Count < _minNumberOfKey)
+            switch (leaf.KeyValueDictionary.Count < _minNumberOfKey)
             {
-                case true when leaf.NextLeaf != null && leaf.NextLeaf.KvpList.Count > _minNumberOfKey && leaf.NextLeaf.Parent == leaf.Parent:
-                {
-                    var keyToMove = leaf.NextLeaf.KvpList[0];
-                    leaf.KvpList.Add(leaf.NextLeaf.KvpList[0]);
-                    leaf.NextLeaf.KvpList.Remove(keyToMove);
-                    leaf.ReplaceValueInParent(keyToMove, leaf.NextLeaf.KvpList[0]);
-                    break;
-                }
-                case true when leaf.PreviousLeaf != null && leaf.PreviousLeaf.KvpList.Count > _minNumberOfKey && leaf.PreviousLeaf.Parent == leaf.Parent:
-                {
-                    var keyToMove = leaf.PreviousLeaf.KvpList[^1];
-                    leaf.KvpList.Add(leaf.PreviousLeaf.KvpList[^1]);
-                    leaf.PreviousLeaf.KvpList.Remove(keyToMove);
-                    leaf.ReplaceValueInParent(key, keyToMove);
-                    break;
-                }
+                case true when leaf.NextLeaf != null && leaf.NextLeaf.KeyValueDictionary.Count > _minNumberOfKey && leaf.NextLeaf.Parent == leaf.Parent:
+                    {
+                        var keyToMove = leaf.NextLeaf.KeyValueDictionary.ElementAt(0).Key;
+                        leaf.KeyValueDictionary.Add(leaf.NextLeaf.KeyValueDictionary.ElementAt(0).Key,null);
+                        leaf.NextLeaf.KeyValueDictionary.Remove(keyToMove);
+                        leaf.ReplaceValueInParent(keyToMove, leaf.NextLeaf.KeyValueDictionary.ElementAt(0).Key);
+                        break;
+                    }
+                case true when leaf.PreviousLeaf != null && leaf.PreviousLeaf.KeyValueDictionary.Count > _minNumberOfKey && leaf.PreviousLeaf.Parent == leaf.Parent:
+                    {
+                        var keyToMove = leaf.PreviousLeaf.KeyValueDictionary.Last().Key;
+                        leaf.KeyValueDictionary.Add(leaf.PreviousLeaf.KeyValueDictionary.Last().Key, null);
+                        leaf.PreviousLeaf.KeyValueDictionary.Remove(keyToMove);
+                        leaf.ReplaceValueInParent(key, keyToMove);
+                        break;
+                    }
                 default:
-                {
-                    var nodeToMerge = leaf;
-                    
-                    if (leaf.NextLeaf?.Parent != leaf.Parent) //if right sibling does not exist
-                        nodeToMerge = leaf.PreviousLeaf;
+                    {
+                        var nodeToMerge = leaf;
 
-                    nodeToMerge.Children.AddRange(nodeToMerge.NextLeaf.Children);
-                    nodeToMerge.KvpList.AddRange(nodeToMerge.NextLeaf.KvpList);
+                        if (leaf.NextLeaf?.Parent != leaf.Parent) //if right sibling does not exist
+                            nodeToMerge = leaf.PreviousLeaf;
 
-                    //nodeToMerge.DeleteValueInParent(key);
+                        nodeToMerge.Children.AddRange(nodeToMerge.NextLeaf.Children);
+                        foreach(var kvp in nodeToMerge.NextLeaf.KeyValueDictionary)                        
+                            nodeToMerge.KeyValueDictionary.Add(kvp.Key, kvp.Value);
+                        
 
-                    if (nodeToMerge?.NextLeaf  != null && nodeToMerge?.NextLeaf?.KvpList.Count != 0 && edgeLeftCase)
-                        nodeToMerge.Parent.KvpList.Remove(nodeToMerge.NextLeaf.KvpList[0]);
+                        //nodeToMerge.DeleteValueInParent(key);
 
-                    if (!edgeLeftCase)
-                        nodeToMerge.Parent.KvpList.Remove(key);
+                        if (nodeToMerge?.NextLeaf != null && nodeToMerge?.NextLeaf?.KeyValueDictionary.Count != 0 && edgeLeftCase)
+                            nodeToMerge.Parent.KeyValueDictionary.Remove(nodeToMerge.NextLeaf.KeyValueDictionary.ElementAt(0).Key);
 
-                    var nodeToDelete = nodeToMerge.NextLeaf;
-                    nodeToMerge.NextLeaf = nodeToMerge.NextLeaf.NextLeaf;
+                        if (!edgeLeftCase)
+                            nodeToMerge.Parent.KeyValueDictionary.Remove(key);
 
-                    if (nodeToMerge.NextLeaf != null)
-                        nodeToMerge.NextLeaf.PreviousLeaf = nodeToMerge;
+                        var nodeToDelete = nodeToMerge.NextLeaf;
+                        nodeToMerge.NextLeaf = nodeToMerge.NextLeaf.NextLeaf;
 
-                    nodeToMerge.Parent.Children.Remove(nodeToDelete);
+                        if (nodeToMerge.NextLeaf != null)
+                            nodeToMerge.NextLeaf.PreviousLeaf = nodeToMerge;
 
-                    nodeToMerge.ReplaceValueInParent(firstChildKey, nodeToMerge.Parent.Children[0].KvpList[0]);
-                    if (nodeToMerge != Root)
-                        BalanceTree(nodeToMerge.Parent);
-                    break;
-                }
+                        nodeToMerge.Parent.Children.Remove(nodeToDelete);
+
+                        nodeToMerge.ReplaceValueInParent(firstChildKey, nodeToMerge.Parent.Children[0].KeyValueDictionary.ElementAt(0).Key);
+                        if (nodeToMerge != Root)
+                            BalanceTree(nodeToMerge.Parent);
+                        break;
+                    }
             }
         }
     }
