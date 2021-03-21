@@ -10,22 +10,22 @@ namespace SimpleDatabaseEngine
         private readonly int _minNumberOfKey;
         private int _median;
 
-        public BPlusTree(int key)
+        public BPlusTree(int key, string value)
         {
             const int treeOrder = 3;
             _median = (int)Math.Ceiling((float)treeOrder / 2) - 1;
             _minNumberOfKey = _median;
             Root = new Node();
-            Root.KeyValueDictionary.Add(key, null);
+            Root.KeyValueDictionary.Add(key, value);
         }
 
-        public bool TryAddKeyToTree(int key)
+        public bool TryAppendElementToTree(int key, string value)
         {
             var leaf = FindLeafToAdd(key, Root);
             if (leaf.KeyValueDictionary.ContainsKey(key))
                 return false;
 
-            leaf.KeyValueDictionary.Add(key, null);
+            leaf.KeyValueDictionary.Add(key, value);
             if (leaf.IsFull())
                 leaf.SplitNode(ref Root, ref _median);
             return true;
@@ -145,7 +145,7 @@ namespace SimpleDatabaseEngine
             }
         }
 
-        public void DeleteKey(int key)
+        public void Delete(int key)
         {
             var leaf = FindLeafWithKey(key, Root);
             if (leaf == Root)
@@ -170,7 +170,7 @@ namespace SimpleDatabaseEngine
                 case true when leaf.NextLeaf != null && leaf.NextLeaf.KeyValueDictionary.Count > _minNumberOfKey && leaf.NextLeaf.Parent == leaf.Parent:
                     {
                         var keyToMove = leaf.NextLeaf.KeyValueDictionary.ElementAt(0).Key;
-                        leaf.KeyValueDictionary.Add(leaf.NextLeaf.KeyValueDictionary.ElementAt(0).Key,null);
+                        leaf.KeyValueDictionary.Add(leaf.NextLeaf.KeyValueDictionary.ElementAt(0).Key, leaf.NextLeaf.KeyValueDictionary.ElementAt(0).Value);
                         leaf.NextLeaf.KeyValueDictionary.Remove(keyToMove);
                         leaf.ReplaceValueInParent(keyToMove, leaf.NextLeaf.KeyValueDictionary.ElementAt(0).Key);
                         break;
@@ -178,7 +178,7 @@ namespace SimpleDatabaseEngine
                 case true when leaf.PreviousLeaf != null && leaf.PreviousLeaf.KeyValueDictionary.Count > _minNumberOfKey && leaf.PreviousLeaf.Parent == leaf.Parent:
                     {
                         var keyToMove = leaf.PreviousLeaf.KeyValueDictionary.Last().Key;
-                        leaf.KeyValueDictionary.Add(leaf.PreviousLeaf.KeyValueDictionary.Last().Key, null);
+                        leaf.KeyValueDictionary.Add(leaf.PreviousLeaf.KeyValueDictionary.Last().Key, leaf.PreviousLeaf.KeyValueDictionary.Last().Value);
                         leaf.PreviousLeaf.KeyValueDictionary.Remove(keyToMove);
                         leaf.ReplaceValueInParent(key, keyToMove);
                         break;
@@ -217,6 +217,19 @@ namespace SimpleDatabaseEngine
                         break;
                     }
             }
+        }
+
+        public bool TryReplaceValue(int key, string newValue)
+        {
+            var node = FindLeafWithKey(key, Root);
+            if (node != null)
+            {
+                node.KeyValueDictionary[key] = newValue;
+                return true;
+            }
+            else
+                return false;
+
         }
     }
 }

@@ -29,8 +29,8 @@ namespace SimpleDatabaseEngineTests
         [Test]
         public void TryAddDuplicateKeyToNode()
         {
-            var tree = new BPlusTree(5);
-            Assert.AreEqual(false, tree.TryAddKeyToTree(5));
+            var tree = new BPlusTree(5,"5");
+            Assert.AreEqual(false, tree.TryAppendElementToTree(5,"5"));
         }
 
         [Test]
